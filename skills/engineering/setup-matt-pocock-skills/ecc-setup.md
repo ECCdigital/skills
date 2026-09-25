@@ -42,6 +42,7 @@ Nach der Bestätigung des Entwurfs (Schritt 3 des Setups):
 
 - Nach dem Block folgt der Abschnitt `## Laufen in GitHub Actions` aus [claude-md-github-actions.md](./claude-md-github-actions.md), wörtlich. Gibt es ihn schon, ersetzt du ihn.
 - In `.claude/settings.json` steht unter `permissions.deny` der Eintrag `Edit(/.claude/skills/**)`. So ändert kein Agent `.claude/skills` von Hand. Andere Einträge der Datei bleiben.
+- Mehr schreibt das Setup nicht: in `CLAUDE.md` nur die Blöcke `## Agent skills` und `## Laufen in GitHub Actions`, in `.claude/settings.json` nur die Deny-Regel. Alles andere in beiden Dateien bleibt Zeichen für Zeichen. Regeln, die nur dieses Repo braucht, etwa zu seinen Workflows, stehen in eigenen Abschnitten der `CLAUDE.md` nach diesen Blöcken oder als weitere Einträge in `.claude/settings.json`. So übersteht ein neues Setup sie.
 
 ## 4. Abschluss
 

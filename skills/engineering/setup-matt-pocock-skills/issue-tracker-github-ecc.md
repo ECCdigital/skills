@@ -91,16 +91,25 @@ Used by `/wayfinder`. In seiner Sprache ist die map die Karte, ein ticket eine K
 - **Frontier query**: über die Sub-Issues-API und `issue_dependencies_summary`, nie über die Suche. `parent-issue:` liefert für die Org immer eine leere Liste. Frontier heißt: offen, ohne offenen Blocker, ohne `agent:laeuft` und ohne `agent:runde`. Die Reihenfolge der Sub-Issues ist die Reihenfolge der Karte.
 
   ```bash
-  gh api repos/{owner}/{repo}/issues/<karte>/sub_issues --paginate --jq '.[] | select(.state == "open" and .issue_dependencies_summary.blocked_by == 0 and ([.labels[].name] | any(. == "agent:laeuft" or . == "agent:runde") | not)) | {number, title, art: ([.labels[].name | select(startswith("wayfinder:"))] | first), assignee: ([.assignees[].login] | first)}'
+  gh api repos/{owner}/{repo}/issues/<karte>/sub_issues --paginate --jq '.[] | select(.state == "open" and .issue_dependencies_summary.blocked_by == 0 and ([.labels[].name] | any(. == "agent:laeuft" or . == "agent:runde") | not)) | {number, title, art: ([.labels[].name | select(startswith("wayfinder:"))] | first), assignee: ([.assignees[].login] | first), blocker: .issue_dependencies_summary.total_blocked_by}'
   ```
+
+  `blocker` zählt alle Blocker der Klärung, auch die geschlossenen.
 
   - Du nimmst die erste Klärung der Frontier, deren eingetragene Person du bist (`gh api user --jq .login`). Sonst die erste ohne Assignee, die keine Research ist.
   - Klärungen einer anderen eingetragenen Person nennst du, du nimmst sie nicht.
+  - Eine Grilling-Klärung mit `blocker` über 0 nimmst du nicht, auch wenn du ihre eingetragene Person bist. Sie war blockiert, und sobald ihr letzter Blocker geschlossen ist, setzt die Auswertung bei ihrem nächsten Lauf von selbst `agent:runde`. Die Auswertung läuft bei jedem geschlossenen Issue und werktags früh. Die Grilling-Runde läuft dann in GitHub Actions. Nähmst du die Klärung lokal, würde die Person zweimal gegrillt, einmal davon in einem bezahlten Lauf. Du nennst sie mit diesem Grund.
+    - Ausnahme: `agent:runde` war an ihr schon einmal gesetzt. Die Auswertung setzt es je Klärung nur einmal. Hat ein Mensch es danach entfernt, nimmst du sie wie jede andere Klärung. Prüfen: `gh api repos/{owner}/{repo}/issues/<n>/events --paginate --jq '.[] | select(.event == "labeled" and .label.name == "agent:runde") | .created_at'` gibt dann mindestens eine Zeile aus.
 - **Claim**: Ein Mensch trägt sich als Assignee ein, falls noch niemand eingetragen ist: `gh issue edit <n> --add-assignee @me`, als erste Schreibaktion. Ist er schon eingetragen, gehört ihm die Klärung bereits. Der Agent claimt per Label `agent:laeuft`, weil ein Bot nicht Assignee sein kann.
 - **Research beim Kartieren**: Research-Klärungen ohne Assignee startet der Agent in GitHub Actions, sobald sie frei sind. Er legt die Befunde auf einen Branch `research/<name>` in diesem Repo. Eine lokale Session startet für sie keine Subagents. Will die treibende Person eine Research selbst lösen, trägt sie sich vorher als Assignee ein.
-- **Grilling-Runden**: Das Label `agent:runde` startet asynchrone Grilling-Runden des Agents. Eine Klärung mit `agent:runde` nimmt keine lokale Session.
-- **Resolve**: Die Antwort ist ein Kommentar, der mit `## Antwort` beginnt. Dann `gh issue close <n> --reason completed`. Dann eine Zeile unter `## Decisions so far` der Karte: `- [<Titel>](<URL>): <Kurzfazit>`.
-- **Out of scope**: Die Klärung mit `--reason "not planned"` schließen und eine Zeile unter `## Out of scope` der Karte ergänzen.
+- **Grilling-Runden**: Das Label `agent:runde` startet asynchrone Grilling-Runden des Agents. Eine Klärung mit `agent:runde` nimmt keine lokale Session. Eine Grilling-Klärung, die blockiert war, bekommt das Label von der Auswertung, sobald ihr letzter Blocker geschlossen ist. Auch sie nimmst du nicht, siehe Frontier query.
+- **Resolve**: in dieser Reihenfolge.
+  1. Die Antwort ist ein Kommentar, der mit `## Antwort` beginnt.
+  2. Eine Zeile unter `## Decisions so far` der Karte: `- [<Titel>](<URL>): <Kurzfazit>`.
+  3. Zuletzt `gh issue close <n> --reason completed`.
+
+  Das Schließen kommt zuletzt, wie in den Workflows: Es startet die Auswertung, und die startet frei gewordene Klärungen. Deren Läufe lesen die Karte, also muss die Entscheidung dann schon dort stehen.
+- **Out of scope**: Erst eine Zeile unter `## Out of scope` der Karte ergänzen, dann die Klärung mit `--reason "not planned"` schließen. Das Schließen kommt auch hier zuletzt.
 - **Karte zu einer Klärung**: `gh api repos/{owner}/{repo}/issues/<n>/parent --jq .number`.
 - Läufst du in GitHub Actions, legst du keine Klärungen und keinen Nebel an. Du nennst sie in der Antwort, und die treibende Person entscheidet.
 
