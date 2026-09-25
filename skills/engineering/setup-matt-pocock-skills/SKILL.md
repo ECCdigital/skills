@@ -42,6 +42,7 @@ Lead each section with the recommended answer so the user can accept it in a wor
 Default posture: these skills were designed for GitHub. If a `git remote` points at GitHub, propose that. If a `git remote` points at GitLab (`gitlab.com` or a self-hosted host), propose GitLab. Otherwise (or if the user prefers), offer:
 
 - **GitHub**: issues live in the repo's GitHub Issues (uses the `gh` CLI)
+- **GitHub ECC** (ECC-Ergänzung): GitHub Issues mit den Konventionen von ECC Digital für Anforderung, Karte und Klärung. Zeigt ein `git remote` auf `ECCdigital/tickets` oder `ECCdigital/tickets-probe`, schlage diese vor. Ablauf in [ecc-setup.md](./ecc-setup.md).
 - **GitLab**: issues live in the repo's GitLab Issues (uses the [`glab`](https://gitlab.com/gitlab-org/cli) CLI)
 - **Local markdown**: issues live as files under `.scratch/<feature>/` in this repo (good for solo projects or repos without a remote)
 - **Other** (Jira, Linear, etc.): ask the user to describe the workflow in one paragraph; the skill will record it as freeform prose
@@ -104,6 +105,7 @@ Include the `### Triage labels` sub-block, and write `docs/agents/triage-labels.
 Then write the docs files using the seed templates in this skill folder as a starting point:
 
 - [issue-tracker-github.md](./issue-tracker-github.md): GitHub issue tracker
+- [issue-tracker-github-ecc.md](./issue-tracker-github-ecc.md): GitHub ECC (ECC-Ergänzung), dazu [ecc-setup.md](./ecc-setup.md) und [claude-md-github-actions.md](./claude-md-github-actions.md)
 - [issue-tracker-gitlab.md](./issue-tracker-gitlab.md): GitLab issue tracker
 - [issue-tracker-local.md](./issue-tracker-local.md): local-markdown issue tracker
 - [triage-labels.md](./triage-labels.md): label mapping (only if `triage` is installed)
