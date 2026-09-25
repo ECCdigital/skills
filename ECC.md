@@ -29,13 +29,12 @@ Alles andere ist Matts Stand. Prüfen: `git diff --stat upstream main`.
 
 Einen neuen Stand freigeben:
 
-1. Die Änderung kommt per Pull Request nach `main`.
-2. In `.claude-plugin/plugin.json` `version` auf `<Matts Version>-ecc.<n>` setzen und nach `main` committen.
-3. `git tag -a ecc-<n> -m "ECC-Fassung ecc-<n>: <was>"`, dann `git push origin ecc-<n>`.
-4. Der Workflow `ecc-sync` öffnet je einen Pull Request in `tickets-probe` und `tickets`. Er bricht ab, wenn Tag und Version nicht zusammenpassen.
-5. In `tickets-probe` mergen. Sagt der Pull Request, dass sich der Setup-Skill geändert hat, dort das Setup neu ausführen: `/setup-matt-pocock-skills`, Vorlage „GitHub ECC“. Dann den Abnahme-Durchlauf fahren.
-6. Danach in `tickets` mergen und dort ebenso das Setup neu ausführen.
-7. Lokal aktualisieren, siehe unten.
+1. Die Änderung kommt per Pull Request nach `main`. Derselbe Pull Request setzt in `.claude-plugin/plugin.json` `version` auf `<Matts Version>-ecc.<n>`.
+2. Nach dem Merge: `git tag -a ecc-<n> -m "ECC-Fassung ecc-<n>: <was>"` auf `main`, dann `git push origin ecc-<n>`.
+3. Der Workflow `ecc-sync` öffnet je einen Pull Request in `tickets-probe` und `tickets`. Er bricht ab, wenn Tag und Version nicht zusammenpassen.
+4. In `tickets-probe` mergen. Sagt der Pull Request, dass sich der Setup-Skill geändert hat, dort das Setup neu ausführen: `/setup-matt-pocock-skills`, Vorlage „GitHub ECC“. Dann den Abnahme-Durchlauf fahren.
+5. Danach in `tickets` mergen und dort ebenso das Setup neu ausführen. Die Ausgabe des Setups ist in beiden Repos gleich.
+6. Lokal aktualisieren, siehe unten.
 
 Einen Sync wiederholen: `gh workflow run ecc-sync.yml -R ECCdigital/skills -f tag=ecc-<n>`. Ein schon offener Pull Request wird aktualisiert, statt doppelt aufzugehen.
 
@@ -47,6 +46,7 @@ Der Fork ist öffentlich. Seine Actions-Läufe kosten deshalb keine Minuten aus 
 - Er erzeugt ein Token der App „ECC Agent“ aus den Secrets `ECC_AGENT_APP_ID` und `ECC_AGENT_PRIVATE_KEY` dieses Repos.
 - Je Ziel-Repo legt er einen Branch `skills/ecc-<n>` an und ersetzt `.claude/skills` ganz durch die ausgewählten Skills des Tags. `.claude/skills/README.md` nennt Tag, Commit, Plugin-Version und Skills.
 - Der Pull Request vermerkt den Tag, verlinkt die Änderungen seit dem letzten Stand und sagt, ob das Setup neu laufen muss.
+- Noch offene Sync-Pull-Requests eines älteren Tags schließt er mit Verweis auf den neuen. In `tickets` ist also immer höchstens einer offen.
 
 ### Auswahl für `.claude/skills`
 

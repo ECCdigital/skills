@@ -2,7 +2,7 @@
 
 Erzeugt vom Setup der ECC-Fassung (`/setup-matt-pocock-skills`, Vorlage „GitHub ECC“), Stand `<tag>`. Nicht von Hand ändern: Die Vorlage liegt im Fork `ECCdigital/skills`. Nach einem neuen Stand führst du das Setup neu aus.
 
-Anforderungen, Tickets, Karten und Klärungen sind Issues in `<owner>/<repo>`. Du arbeitest mit `gh`, das Repo ergibt sich aus `git remote -v`. Die Begriffe stehen in `CONTEXT.md`.
+Anforderungen, Tickets, Karten und Klärungen sind Issues in diesem Repo: `ECCdigital/tickets`, zum Testen `ECCdigital/tickets-probe`. Du arbeitest mit `gh`, das Repo ergibt sich aus `git remote -v`. In `gh api` setzt `gh` die Platzhalter `{owner}` und `{repo}` selbst ein. Die Begriffe stehen in `CONTEXT.md`.
 
 ## Arten von Issues
 
@@ -42,9 +42,9 @@ Triage-Labels wie `needs-triage` oder `ready-for-agent` gibt es hier nicht. Die 
 
 ## Board Arbeit
 
-- Tickets und Karten stehen im Org-Board Nr. `<board>` von `<owner>` (Repo-Variable `BOARD`). Klärungen kommen nie ins Board. Das Board nimmt nichts von selbst auf.
-- Der Zustand steht im eingebauten Feld Status. Dazu kommen die Felder Produkt und Projekt. Ihre Auswahlwerte liest du aus dem Board (`gh project field-list <board> --owner <owner>`). Eine zweite Liste gibt es nicht.
-- Ins Board: `gh project item-add <board> --owner <owner> --url <issue-url>`, dann die Felder mit `gh project item-edit`.
+- Tickets und Karten stehen im Org-Board, das die Repo-Variable `BOARD` nennt: für `tickets` Nr. 11 „Arbeit“, für `tickets-probe` Nr. 12 „Arbeit (Probe)“. Klärungen kommen nie ins Board. Das Board nimmt nichts von selbst auf.
+- Der Zustand steht im eingebauten Feld Status. Dazu kommen die Felder Produkt und Projekt. Ihre Auswahlwerte liest du aus dem Board (`gh project field-list <board> --owner ECCdigital`). Eine zweite Liste gibt es nicht.
+- Ins Board: `gh project item-add <board> --owner ECCdigital --url <issue-url>`, dann die Felder mit `gh project item-edit`.
 
 ## Grundbefehle
 
@@ -76,12 +76,12 @@ Used by `/wayfinder`. In seiner Sprache ist die map die Karte, ein ticket eine K
   - Klärungen bekommen keinen Issue Type und kommen nie ins Board.
 - **Blocking**: native Abhängigkeiten, im zweiten Durchgang: `gh issue edit <n> --add-blocked-by <nummern>`. Lokale Kanten brauchen `gh` ab 2.94, prüfe mit `gh --version`.
   - Ein Blocker ist eine Klärung oder eine ganze andere Karte. Die Kante zeigt dann auf das Issue der anderen Karte.
-  - Ohne `gh` 2.94: `gh api --method POST repos/<owner>/<repo>/issues/<n>/dependencies/blocked_by -F issue_id=<id>`. Die `<id>` ist die Datenbank-Id des Blockers aus `gh api repos/<owner>/<repo>/issues/<blocker> --jq .id`, nicht die Nummer.
+  - Ohne `gh` 2.94: `gh api --method POST repos/{owner}/{repo}/issues/<n>/dependencies/blocked_by -F issue_id=<id>`. Die `<id>` ist die Datenbank-Id des Blockers aus `gh api repos/{owner}/{repo}/issues/<blocker> --jq .id`, nicht die Nummer.
   - Frei ist eine Klärung, wenn jeder Blocker geschlossen ist.
 - **Frontier query**: über die Sub-Issues-API und `issue_dependencies_summary`, nie über die Suche. `parent-issue:` liefert für die Org immer eine leere Liste. Frontier heißt: offen, ohne offenen Blocker, ohne `agent:laeuft` und ohne `agent:runde`. Die Reihenfolge der Sub-Issues ist die Reihenfolge der Karte.
 
   ```bash
-  gh api repos/<owner>/<repo>/issues/<karte>/sub_issues --paginate --jq '.[] | select(.state == "open" and .issue_dependencies_summary.blocked_by == 0 and ([.labels[].name] | any(. == "agent:laeuft" or . == "agent:runde") | not)) | {number, title, art: ([.labels[].name | select(startswith("wayfinder:"))] | first), assignee: ([.assignees[].login] | first)}'
+  gh api repos/{owner}/{repo}/issues/<karte>/sub_issues --paginate --jq '.[] | select(.state == "open" and .issue_dependencies_summary.blocked_by == 0 and ([.labels[].name] | any(. == "agent:laeuft" or . == "agent:runde") | not)) | {number, title, art: ([.labels[].name | select(startswith("wayfinder:"))] | first), assignee: ([.assignees[].login] | first)}'
   ```
 
   - Du nimmst die erste Klärung der Frontier, deren eingetragene Person du bist (`gh api user --jq .login`). Sonst die erste ohne Assignee, die keine Research ist.
@@ -91,7 +91,7 @@ Used by `/wayfinder`. In seiner Sprache ist die map die Karte, ein ticket eine K
 - **Grilling-Runden**: Das Label `agent:runde` startet asynchrone Grilling-Runden des Agents. Eine Klärung mit `agent:runde` nimmt keine lokale Session.
 - **Resolve**: Die Antwort ist ein Kommentar, der mit `## Antwort` beginnt. Dann `gh issue close <n> --reason completed`. Dann eine Zeile unter `## Decisions so far` der Karte: `- [<Titel>](<URL>): <Kurzfazit>`.
 - **Out of scope**: Die Klärung mit `--reason "not planned"` schließen und eine Zeile unter `## Out of scope` der Karte ergänzen.
-- **Karte zu einer Klärung**: `gh api repos/<owner>/<repo>/issues/<n>/parent --jq .number`.
+- **Karte zu einer Klärung**: `gh api repos/{owner}/{repo}/issues/<n>/parent --jq .number`.
 - Läufst du in GitHub Actions, legst du keine Klärungen und keinen Nebel an. Du nennst sie in der Antwort, und die treibende Person entscheidet.
 
 ## Spec und Tickets aus einer Karte
