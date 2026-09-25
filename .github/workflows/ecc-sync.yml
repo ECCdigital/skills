@@ -144,4 +144,11 @@ jobs:
               gh pr edit "$zweig" -R "$repo" --body-file "$RUNNER_TEMP/pr-$ziel.md"
               echo "$repo: Pull Request für $zweig war schon offen, Text aktualisiert"
             fi
+
+            # Ältere, noch offene Sync-PRs sind durch diesen Stand ersetzt.
+            neu=$(gh pr view "$zweig" -R "$repo" --json url --jq .url)
+            for alt in $(gh pr list -R "$repo" --state open --json number,headRefName \
+                --jq ".[] | select(.headRefName | startswith(\"skills/ecc-\")) | select(.headRefName != \"$zweig\") | .number"); do
+              gh pr close "$alt" -R "$repo" --delete-branch --comment "Ersetzt durch Stand \`$TAG\`: $neu"
+            done
           done
