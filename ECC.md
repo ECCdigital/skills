@@ -13,13 +13,14 @@ Matts Skill-Dateien bleiben unverändert, damit Übernahmen ohne Konflikte gehen
 
 Dazu kommt, was der Fork selbst braucht:
 
-- `.github/workflows/ecc-sync.yml`: der Sync.
 - `.claude-plugin/plugin.json`: nur `version`, siehe Tags.
 - `.claude-plugin/marketplace.json`: nur `name` (`ecc`) und `description`.
 - `ECC.md`: diese Datei.
 - Matts Workflow `release.yml` ist im Fork abgeschaltet (`gh workflow disable release.yml`). Die Datei bleibt unverändert.
 
 Alles andere ist Matts Stand. Prüfen: `git diff --stat upstream main`.
+
+Den Sync hat der Fork nicht. Er liegt in `ECCdigital/tickets-probe`, siehe „Der Sync“.
 
 ## Stände und Tags
 
@@ -31,26 +32,33 @@ Einen neuen Stand freigeben:
 
 1. Die Änderung kommt per Pull Request nach `main`. Derselbe Pull Request setzt in `.claude-plugin/plugin.json` `version` auf `<Matts Version>-ecc.<n>`.
 2. Nach dem Merge: `git tag -a ecc-<n> -m "ECC-Fassung ecc-<n>: <was>"` auf `main`, dann `git push origin ecc-<n>`.
-3. Der Workflow `ecc-sync` öffnet je einen Pull Request in `tickets-probe` und `tickets`. Er bricht ab, wenn Tag und Version nicht zusammenpassen.
+3. Den Sync starten: `gh workflow run ecc-sync.yml -R ECCdigital/tickets-probe -f tag=ecc-<n>`. Er öffnet je einen Pull Request in `tickets-probe` und `tickets`. Er bricht ab, wenn der Tag nicht auf `main` liegt oder Tag und Version nicht zusammenpassen. Den Lauf zeigt `gh run list -R ECCdigital/tickets-probe --workflow ecc-sync.yml`.
 4. In `tickets-probe` mergen. Sagt der Pull Request, dass sich der Setup-Skill geändert hat, dort das Setup neu ausführen: `/setup-matt-pocock-skills`, Vorlage „GitHub ECC“. Dann den Abnahme-Durchlauf fahren.
 5. Danach in `tickets` mergen und dort ebenso das Setup neu ausführen. Die Ausgabe des Setups ist in beiden Repos gleich.
 6. Lokal aktualisieren, siehe unten.
 
-Einen Sync wiederholen: `gh workflow run ecc-sync.yml -R ECCdigital/skills -f tag=ecc-<n>`. Ein schon offener Pull Request wird aktualisiert, statt doppelt aufzugehen.
-
-Der Fork ist öffentlich. Seine Actions-Läufe kosten deshalb keine Minuten aus dem Kontingent der Org.
+Einen Sync wiederholen: derselbe Befehl. Ein schon offener Pull Request wird aktualisiert, statt doppelt aufzugehen.
 
 ## Der Sync
 
-- Auslöser: ein Tag `ecc-*`, oder von Hand mit einem vorhandenen Tag.
-- Er erzeugt ein Token der App „ECC Agent“ aus den Secrets `ECC_AGENT_APP_ID` und `ECC_AGENT_PRIVATE_KEY` dieses Repos.
-- Je Ziel-Repo legt er einen Branch `skills/ecc-<n>` an und ersetzt `.claude/skills` ganz durch die ausgewählten Skills des Tags. `.claude/skills/README.md` nennt Tag, Commit, Plugin-Version und Skills.
+Der Sync ist der Workflow `ecc-sync` in `ECCdigital/tickets-probe` (`.github/workflows/ecc-sync.yml`). `tickets` hat dieselbe Datei, dort läuft er aber nicht: Sein Job prüft `github.repository`.
+
+Warum nicht im Fork: Der Fork ist öffentlich. Hätte er die Secrets der App, könnte jeder mit Schreibrecht dort über einen Workflow den privaten Schlüssel in öffentliche Logs bringen. Mit dem Schlüssel erreicht man Inhalte, Issues und Pull Requests in `tickets` und `tickets-probe` und schreibt in die Boards der Org. Deshalb hat der Fork keine Secrets, und die App „ECC Agent“ ist dort nicht installiert.
+
+- Auslöser: nur von Hand, mit `-f tag=ecc-<n>`. Ohne Tag nimmt er den neuesten Tag `ecc-<n>` des Forks. Einen Zeitplan gibt es nicht, weil jeder Lauf Actions-Minuten der Org kostet, rund eine.
+- Er liest den Fork ohne Zugangsdaten, noch bevor er ein Token erzeugt. Er prüft:
+  - Der Tag passt genau zum Schema `ecc-<n>`.
+  - Der Commit des Tags liegt auf `main` des Forks.
+  - `.claude-plugin/plugin.json` hat dort die Version `<Matts Version>-ecc.<n>`.
+  - Danach gilt dieser Commit, nicht mehr der Tag.
+- Er erzeugt ein Token der App „ECC Agent“ aus den Secrets `ECC_AGENT_APP_ID` und `ECC_AGENT_PRIVATE_KEY` von `tickets-probe`. Das Token gilt nur für `tickets-probe` und `tickets` und nur für Contents und Pull Requests. Die App hat kein Recht `workflows`, deshalb ändert der Pull Request nur `.claude/skills`.
+- Je Ziel-Repo legt er einen Branch `skills/ecc-<n>` an und ersetzt `.claude/skills` ganz durch die ausgewählten Skills des Tags. `.claude/skills/README.md` nennt Tag, Commit, Plugin-Version und Skills. Gibt es den Branch schon, setzt er einen Commit darauf.
 - Der Pull Request vermerkt den Tag, verlinkt die Änderungen seit dem letzten Stand und sagt, ob das Setup neu laufen muss.
-- Noch offene Sync-Pull-Requests eines älteren Tags schließt er mit Verweis auf den neuen. In `tickets` ist also immer höchstens einer offen.
+- Noch offene Sync-Pull-Requests eines älteren Tags schließt er mit Verweis auf den neuen: nur Branches `skills/ecc-<m>` des Bots mit `<m>` kleiner als `<n>`. Solange man Tags in ihrer Reihenfolge synchronisiert, ist in `tickets` also höchstens einer offen.
 
 ### Auswahl für `.claude/skills`
 
-Die Liste steht als `SKILLS` im Workflow. Sie enthält, was der Ablauf in `tickets` braucht:
+Die Liste steht als `SKILLS` im Sync-Workflow in `tickets-probe`. Sie enthält, was der Ablauf in `tickets` braucht:
 
 | Skill | Wofür |
 |---|---|
@@ -61,7 +69,7 @@ Die Liste steht als `SKILLS` im Workflow. Sie enthält, was der Ablauf in `ticke
 | `to-spec`, `to-tickets` | Ende einer Karte, lokal in `tickets`. |
 | `setup-matt-pocock-skills` | Das Setup läuft aus dem Stand des Repos. So passen `CLAUDE.md` und `docs/agents/` zum synchronisierten Tag. |
 
-Nicht dabei sind `triage`, weil die Weiche ihn ersetzt, und die Skills für die Umsetzung (`tdd`, `code-review` und so weiter). Die haben alle lokal über das Plugin. Eine andere Auswahl heißt: Liste im Workflow ändern, dann neuer Tag.
+Nicht dabei sind `triage`, weil die Weiche ihn ersetzt, und die Skills für die Umsetzung (`tdd`, `code-review` und so weiter). Die haben alle lokal über das Plugin. Eine andere Auswahl heißt: Liste im Workflow in `tickets-probe` ändern, dann den Sync mit dem aktuellen Tag neu starten.
 
 ### `.claude/skills` schreibt nur der Sync
 
