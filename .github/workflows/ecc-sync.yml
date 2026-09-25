@@ -1,0 +1,147 @@
+# ECC: Sync der ECC-Fassung. Ein Tag ecc-<n> öffnet mit dem Token der App „ECC Agent“ je einen
+# Pull Request in tickets-probe und tickets, der .claude/skills auf den Stand des Tags setzt.
+# Ablauf, Tag-Schema und Auswahl der Skills: ECC.md.
+name: ecc-sync
+
+on:
+  push:
+    tags: ["ecc-*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Vorhandener Tag ecc-<n>, der erneut synchronisiert wird"
+        required: true
+
+concurrency:
+  group: ecc-sync
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  TAG: ${{ inputs.tag || github.ref_name }}
+  ZIELE: "tickets-probe tickets"
+  # Skills für .claude/skills der Ziel-Repos, als Pfad unter skills/. Begründung der Auswahl: ECC.md.
+  SKILLS: >-
+    engineering/wayfinder
+    productivity/grilling
+    engineering/domain-modeling
+    engineering/research
+    engineering/prototype
+    engineering/to-spec
+    engineering/to-tickets
+    engineering/setup-matt-pocock-skills
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: refs/tags/${{ env.TAG }}
+          path: quelle
+
+      - name: Tag und Plugin-Version prüfen
+        working-directory: quelle
+        run: |
+          case "$TAG" in
+            ecc-[0-9]*) ;;
+            *) echo "::error::Tag $TAG passt nicht zum Schema ecc-<n>"; exit 1 ;;
+          esac
+          n="${TAG#ecc-}"
+          version=$(jq -r .version .claude-plugin/plugin.json)
+          case "$version" in
+            *-ecc."$n") ;;
+            *) echo "::error::plugin.json hat Version $version, erwartet <Matts Version>-ecc.$n"; exit 1 ;;
+          esac
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+          echo "COMMIT=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+
+      - id: token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.ECC_AGENT_APP_ID }}
+          private-key: ${{ secrets.ECC_AGENT_PRIVATE_KEY }}
+          owner: ECCdigital
+          repositories: tickets-probe,tickets
+
+      - name: Pull Requests öffnen
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+          BOT: ${{ steps.token.outputs.app-slug }}[bot]
+          LAUF: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          bot_id=$(gh api "users/$BOT" --jq .id)
+          zweig="skills/$TAG"
+          quelle="$GITHUB_WORKSPACE/quelle"
+          liste=""
+          for s in $SKILLS; do liste="$liste, $(basename "$s")"; done
+          liste="${liste#, }"
+
+          for ziel in $ZIELE; do
+            repo="ECCdigital/$ziel"
+            dir="$RUNNER_TEMP/$ziel"
+            git clone --quiet --depth 1 "https://x-access-token:${GH_TOKEN}@github.com/${repo}.git" "$dir"
+            cd "$dir"
+            basis=$(git rev-parse --abbrev-ref HEAD)
+            # shellcheck disable=SC2016
+            vorher=$(sed -n 's/^- Stand: Tag \[`\(ecc-[0-9]*\)`\].*/\1/p' .claude/skills/README.md 2>/dev/null || true)
+            git switch --quiet -c "$zweig"
+
+            rm -rf .claude/skills
+            mkdir -p .claude/skills
+            for s in $SKILLS; do
+              cp -R "$quelle/skills/$s" ".claude/skills/$(basename "$s")"
+            done
+            {
+              echo "# Skills der ECC-Fassung"
+              echo
+              echo "Nicht von Hand ändern. Diesen Ordner schreibt nur der Sync aus [ECCdigital/skills](https://github.com/ECCdigital/skills), per Pull Request."
+              echo
+              echo "- Stand: Tag [\`$TAG\`](https://github.com/ECCdigital/skills/tree/$TAG), Commit \`${COMMIT:0:7}\`, Plugin-Version \`$VERSION\`"
+              echo "- Skills: $liste"
+              echo
+              echo "Ändern heißt: im Fork ändern und einen neuen Tag \`ecc-<n>\` setzen. Der Sync öffnet dann Pull Requests in \`tickets-probe\` und \`tickets\`. Ablauf in [ECC.md](https://github.com/ECCdigital/skills/blob/main/ECC.md)."
+            } > .claude/skills/README.md
+
+            git add -A .claude/skills
+            if git diff --cached --quiet; then
+              echo "$repo: .claude/skills steht schon auf $TAG"
+              continue
+            fi
+            setup_neu=nein
+            git diff --cached --quiet -- .claude/skills/setup-matt-pocock-skills || setup_neu=ja
+
+            git -c user.name="$BOT" -c user.email="${bot_id}+${BOT}@users.noreply.github.com" \
+              commit --quiet -m "Skills auf Stand $TAG der ECC-Fassung"
+            git push --quiet --force origin "$zweig"
+
+            {
+              echo "Setzt \`.claude/skills\` auf den Stand von Tag [\`$TAG\`](https://github.com/ECCdigital/skills/tree/$TAG) der ECC-Fassung (Commit \`${COMMIT:0:7}\`, Plugin-Version \`$VERSION\`)."
+              echo
+              echo "- Skills: $liste"
+              if [ -n "$vorher" ] && [ "$vorher" != "$TAG" ]; then
+                echo "- Änderungen seit \`$vorher\`: [Vergleich](https://github.com/ECCdigital/skills/compare/$vorher...$TAG)"
+              fi
+              if [ "$setup_neu" = ja ]; then
+                # shellcheck disable=SC2016
+                echo '- **Der Setup-Skill hat sich geändert.** Nach dem Merge das Setup neu ausführen: `/setup-matt-pocock-skills`, Vorlage „GitHub ECC“.'
+              fi
+              echo
+              echo "Reihenfolge: zuerst in \`tickets-probe\` mergen und den Abnahme-Durchlauf fahren, danach in \`tickets\`."
+              echo
+              echo "_Geöffnet vom Workflow \`ecc-sync\` im Fork ([Lauf]($LAUF))._"
+            } > "$RUNNER_TEMP/pr-$ziel.md"
+
+            offen=$(gh pr list -R "$repo" --head "$zweig" --state open --json number --jq length)
+            if [ "$offen" = 0 ]; then
+              gh pr create -R "$repo" --base "$basis" --head "$zweig" \
+                --title "Skills auf Stand $TAG der ECC-Fassung" --body-file "$RUNNER_TEMP/pr-$ziel.md"
+            else
+              gh pr edit "$zweig" -R "$repo" --body-file "$RUNNER_TEMP/pr-$ziel.md"
+              echo "$repo: Pull Request für $zweig war schon offen, Text aktualisiert"
+            fi
+          done
