@@ -6,7 +6,7 @@ Dieser Fork ist die einzige Quelle der Skills für ECC Digital (ADR 0002 im Repo
 
 Matts Skill-Dateien bleiben unverändert, damit Übernahmen ohne Konflikte gehen. Die ECC-Ergänzungen liegen im Setup-Skill `skills/engineering/setup-matt-pocock-skills/`:
 
-- `issue-tracker-github-ecc.md`: die Tracker-Vorlage „GitHub ECC“. Der Abschnitt „Spec und Tickets aus einer Karte“ ist noch ein Platzhalter. Dort kommen Spec, Freigabe und Tickets aus einem Spec hinein.
+- `issue-tracker-github-ecc.md`: die Tracker-Vorlage „GitHub ECC“, mit Kartieren, Spec, Freigabe und Tickets aus einem Spec.
 - `claude-md-github-actions.md`: der Baustein „Laufen in GitHub Actions“ für die `CLAUDE.md` des Repos.
 - `ecc-setup.md`: wie das Setup die Vorlage anwendet (Werte einsetzen, keine Triage-Labels, `CLAUDE.md`, Deny-Regel).
 - `SKILL.md`: zwei Zeilen, die „GitHub ECC“ anbieten. Sonst ist die Datei Matts Stand.

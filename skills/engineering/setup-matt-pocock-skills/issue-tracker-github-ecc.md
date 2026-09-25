@@ -2,7 +2,7 @@
 
 Erzeugt vom Setup der ECC-Fassung (`/setup-matt-pocock-skills`, Vorlage „GitHub ECC“), Stand `<tag>`. Nicht von Hand ändern: Die Vorlage liegt im Fork `ECCdigital/skills`. Nach einem neuen Stand führst du das Setup neu aus.
 
-Anforderungen, Tickets, Karten und Klärungen sind Issues in diesem Repo: `ECCdigital/tickets`, zum Testen `ECCdigital/tickets-probe`. Du arbeitest mit `gh`, das Repo ergibt sich aus `git remote -v`. In `gh api` setzt `gh` die Platzhalter `{owner}` und `{repo}` selbst ein. Die Begriffe stehen in `CONTEXT.md`.
+Anforderungen, Tickets, Karten und Klärungen sind Issues in diesem Repo: `ECCdigital/tickets`, zum Testen `ECCdigital/tickets-probe`. Du arbeitest mit `gh`, das Repo ergibt sich aus `git remote -v`. Hat der Klon mehrere Remotes, braucht `gh` einen Standard: einmal `gh repo set-default ECCdigital/tickets`, für die Probe `GH_REPO=ECCdigital/tickets-probe` vor jedem Befehl. In `gh api` setzt `gh` die Platzhalter `{owner}` und `{repo}` selbst ein. Die Begriffe stehen in `CONTEXT.md`.
 
 ## Arten von Issues
 
@@ -45,10 +45,14 @@ Triage-Labels wie `needs-triage` oder `ready-for-agent` gibt es hier nicht. Die 
 - Tickets und Karten stehen im Org-Board, das die Repo-Variable `BOARD` nennt: für `tickets` Nr. 11 „Arbeit“, für `tickets-probe` Nr. 12 „Arbeit (Probe)“. Klärungen kommen nie ins Board. Das Board nimmt nichts von selbst auf.
 - Der Zustand steht im eingebauten Feld Status. Dazu kommen die Felder Produkt und Projekt. Ihre Auswahlwerte liest du aus dem Board (`gh project field-list <board> --owner ECCdigital`). Eine zweite Liste gibt es nicht.
 - Ins Board: `gh project item-add <board> --owner ECCdigital --url <issue-url>`, dann die Felder mit `gh project item-edit`.
+- Einfacher geht es mit `.github/scripts/board.sh` aus dem Repo. Es prüft die Werte, bevor es schreibt, und nimmt auch einen eindeutigen Teil eines Namens, etwa die MOCO-Kennung.
+  - `board.sh setze <n> Zustand=Backlog Produkt=<Produkt> Projekt=<Projekt>` nimmt das Issue ins Board auf und setzt die Felder. `board.sh zeige <n>` zeigt sie, `board.sh felder` die Auswahlwerte.
+  - Lokal braucht es die Umgebung `BOARD` (`gh variable get BOARD`) und `GITHUB_REPOSITORY`, etwa `BOARD=12 GITHUB_REPOSITORY=ECCdigital/tickets-probe .github/scripts/board.sh zeige 10`.
 
 ## Grundbefehle
 
-- **Issue anlegen**: `gh issue create --title "..." --body-file <datei>`, mit Label oder Issue Type nach den Arten oben. Ein neues Issue ohne Label und ohne Typ ist eine Anforderung und startet die Weiche.
+- **Issue anlegen**: `gh issue create --title "..." --body-file <datei>`, mit Label nach den Arten oben. Ein neues Issue ohne Label und ohne Typ ist eine Anforderung und startet die Weiche.
+- **Ticket anlegen**: mit Issue Type in einem Aufruf: `gh api repos/{owner}/{repo}/issues -f title="..." -F body=@<datei> -f type=<Fehler|Feature|Aufgabe> --jq .number`. Nicht mit `gh issue create --type`: Es setzt den Typ erst in einem zweiten Schritt, und dann startet die Weiche.
 - **Issue lesen**: `gh issue view <n> --comments`. Labels, Assignees und Typ mit `--json labels,assignees,issueType`.
 - **Issues auflisten**: `gh issue list --state open --json number,title,labels,assignees`, gefiltert mit `--label`, `--state` oder `--search`.
 - **Kommentieren**: `gh issue comment <n> --body-file <datei>`.
@@ -59,9 +63,15 @@ Triage-Labels wie `needs-triage` oder `ready-for-agent` gibt es hier nicht. Die 
 
 **PRs as a request surface: no.** Anforderungen kommen nur als Issues herein.
 
+## When a skill says "publish to the issue tracker"
+
+- `/to-spec`: Der Spec ist ein Kommentar an der Karte. Du legst kein neues Issue an. Siehe „Spec und Tickets aus einer Karte“.
+- `/to-tickets`: Tickets aus einem Spec, ebenda.
+- Ein Triage-Label wie `ready-for-agent` setzt du nicht, auch wenn der Skill es verlangt.
+
 ## When a skill says "fetch the relevant ticket"
 
-Run `gh issue view <number> --comments`.
+Run `gh issue view <number> --comments`. Ist es eine Karte und läuft `/to-spec` oder `/to-tickets`, gilt zuerst „Spec und Tickets aus einer Karte“.
 
 ## Wayfinding operations
 
@@ -96,4 +106,89 @@ Used by `/wayfinder`. In seiner Sprache ist die map die Karte, ein ticket eine K
 
 ## Spec und Tickets aus einer Karte
 
-Noch nicht festgelegt. Dieser Teil folgt mit einem späteren Stand der ECC-Fassung: Spec an der Karte, Freigabe und Tickets aus einem Spec, dazu „When a skill says publish to the issue tracker“. Bis dahin ziehst du an einer Karte weder `/to-spec` noch `/to-tickets`.
+Ist auf einer Karte nichts mehr zu entscheiden, zieht die treibende Hauptentwickler:in lokal `/to-spec` und danach `/to-tickets`. In GitHub Actions läuft beides nie. Die Karte ist die Anforderung selbst. Nennt die Person keine Karte, fragst du nach ihrer Nummer.
+
+Den Karten-Text holst und schreibst du wie beim Kartieren. Du ergänzt nur Zeilen. Der übrige Text bleibt Zeichen für Zeichen, auch HTML-Kommentare wie `<!-- … -->`.
+
+### Spec
+
+- Hat die Karte noch offene Klärungen oder Punkte unter `## Not yet specified`, nennst du sie und fragst, ob die Person trotzdem einen Spec will.
+- Der Spec ist ein Kommentar an der Karte. Seine erste Zeile ist `## Spec`, danach folgt die Vorlage aus `/to-spec`.
+- Anlegen: `gh issue comment <karte> --body-file <datei>`. Die Ausgabe ist die URL des Kommentars.
+- Dann ergänzt du unter `## Notes` der Karte die Zeile `- Spec: <URL>`.
+- Ändert sich der Spec, bearbeitest du denselben Kommentar: `gh api --method PATCH repos/{owner}/{repo}/issues/comments/<id> -F body=@<datei>`. Die `<id>` ist die Zahl nach `#issuecomment-` in der URL. So bleibt der Link gültig. Nach einer Freigabe änderst du ihn nur, wenn die Person es ausdrücklich will, denn das Angebot beruht auf ihm.
+
+### Freigabe
+
+Nach dem Spec fragst du die Person: Deckt ein laufendes Projekt die Anforderung? Ein Projekt an der Karte reicht dafür nicht, sein Auftrag muss die Anforderung umfassen.
+
+- **Ja**: Du ergänzt unter `## Notes` die Zeile `- Keine Freigabe nötig: <Projekt> deckt die Anforderung.` Weiter mit `/to-tickets`.
+- **Nein**: Die Karte wartet auf Freigabe. Der Spec ist die Grundlage des Angebots.
+  1. Poste an der Karte die Anfrage. Die Logins der Kundenbetreuung liefert `gh variable get KUNDENBETREUUNG`, jedes bekommt ein @:
+
+     ```
+     **Freigabe angefragt**: @<login> @<login> bitte ein Angebot auf Grundlage des [Spec](<URL des Spec>).
+     Kein laufendes Projekt deckt diese Anforderung. Vermerkt hier als Kommentar die Freigabe, etwa „Freigabe: Angebot <Nummer> angenommen“, oder die Absage mit Grund.
+     ```
+
+  2. Erst danach: `gh issue edit <karte> --add-label freigabe:wartet`. In dieser Reihenfolge startet die Anfrage keinen Freigabe-Vermerk.
+
+Solange die Karte `freigabe:wartet` trägt, startet jeder Kommentar eines Menschen an ihr den **Freigabe-Vermerk** in GitHub Actions. Er liest den Kommentar:
+
+- **Freigabe**: Er ergänzt unter `## Notes` die Zeile `- Freigabe am <TT.MM.JJJJ> von <login>: <Bezug> ([Kommentar](<URL>))`. Dann entfernt er `freigabe:wartet` und erwähnt die treibende Person, damit sie `/to-tickets` zieht.
+- **Absage**: Er begründet sie in einem Kommentar und erwähnt die treibende Person. Dann entfernt er `freigabe:wartet`, setzt im Board Zustand Verworfen und schließt die Karte als nicht geplant.
+- **Sonst**: eine knappe Antwort. Das Label bleibt.
+
+Das Label entfernt nur der Freigabe-Vermerk, nie eine lokale Session. Hat die Person die Freigabe nur mündlich erfahren, schreibt sie sie mit Bezug als Kommentar an die Karte. Deckt doch ein laufendes Projekt die Anforderung, schreibt sie das mit dem Projekt als Kommentar. Der Freigabe-Vermerk behandelt es wie eine Freigabe.
+
+### Tickets aus einem Spec
+
+Prüfe zuerst, bevor du einen Zuschnitt entwirfst:
+
+- Trägt die Karte `freigabe:wartet`, legst du keine Tickets an und entwirfst keinen Zuschnitt. Du sagst: „Karte #<n> wartet auf Freigabe. Tickets entstehen erst nach dem Freigabe-Vermerk.“ Dann endest du.
+- Steht unter `## Notes` weder eine Freigabe noch „Keine Freigabe nötig“, klärst du das zuerst wie unter „Freigabe“.
+- Grundlage ist der Spec, den `## Notes` verlinkt.
+
+Nach dem bestätigten Zuschnitt legst du die Tickets in der Reihenfolge der Abhängigkeiten an, Blocker zuerst:
+
+- Jedes Ticket bekommt einen Issue Type im selben Aufruf, wie unter „Ticket anlegen“.
+- Kein Label, kein Assignee, kein `--parent`. Tickets sind keine Sub-Issues der Karte. Ein Triage-Label bekommen sie nicht, denn Bereit setzt ein Mensch.
+- Ins Board mit Zustand Backlog und dem Produkt und Projekt der Karte: die Werte mit `board.sh zeige <karte>`, dann `board.sh setze <n> Zustand=Backlog Produkt=<Produkt> Projekt=<Projekt>`. Hat die Karte kein Projekt, lässt du `Projekt=` weg.
+- Blockiert-von-Kanten sind nativ. Du setzt sie, wenn alle Tickets angelegt sind: `gh issue edit <n> --add-blocked-by <nummern>`.
+- Der Text folgt dieser Form statt der `<issue-template>` aus `/to-tickets`:
+
+  ```
+  ## Herkunft
+
+  Karte #<karte>, [Spec](<URL des Spec>)
+
+  ## Was entsteht
+
+  <das Verhalten von Ende zu Ende, aus Sicht der Nutzer:innen>
+
+  ## Definition of Ready
+
+  <je nach Typ wie in `CONTEXT.md`. Fehler: **Schritte zum Reproduzieren** und **Erwartetes Verhalten**. Feature: **Ziel** in einem Satz und **Akzeptanzkriterien** als Liste mit `- [ ]`. Aufgabe: **Ergebnis** in einem Satz.>
+
+  ## Blockiert von
+
+  - #<n>, oder „Nichts, kann sofort starten.“
+  ```
+
+### Karte übergeben
+
+Die Karte ist kein Parent der Tickets. Sind alle Tickets angelegt, schließt die treibende Person sie. Frag vorher kurz, dann:
+
+1. Kommentar an der Karte:
+
+   ```
+   **Karte übergeben**
+   Spec: <URL des Spec>
+   Tickets:
+   - #<n> <Titel>
+   ```
+
+2. `board.sh setze <karte> Zustand=Erledigt`.
+3. `gh issue close <karte> --reason completed`.
+
+Die Anforderung ist dann in der Phase Übergeben.
