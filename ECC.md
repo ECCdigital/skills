@@ -1,6 +1,6 @@
 # ECC-Fassung von Matt Pococks Skills
 
-Dieser Fork ist die einzige Quelle der Skills für ECC Digital (ADR 0002 im Repo `ECCdigital/tickets`). Alle nutzen dieselbe Fassung: zentral in `tickets` über `.claude/skills`, lokal als Marketplace. Marvin pflegt den Fork und übernimmt Matts Updates bewusst.
+Dieser Fork ist die einzige Quelle der Skills für ECC Digital (ADR 0002 im Repo `ECCdigital/tickets`). Alle nutzen dieselbe Fassung: zentral in `tickets` über `.claude/skills`, lokal als Marketplace. Eine Hauptentwickler:in pflegt den Fork und übernimmt Matts Updates bewusst.
 
 ## Was ECC-eigen ist
 
