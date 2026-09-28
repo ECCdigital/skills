@@ -7,8 +7,9 @@ Dieser Fork ist die einzige Quelle der Skills für ECC Digital (ADR 0002 im Repo
 Matts Skill-Dateien bleiben unverändert, damit Übernahmen ohne Konflikte gehen. Die ECC-Ergänzungen liegen im Setup-Skill `skills/engineering/setup-matt-pocock-skills/`:
 
 - `issue-tracker-github-ecc.md`: die Tracker-Vorlage „GitHub ECC“, mit Kartieren, Spec, Freigabe und Tickets aus einem Spec.
+- `issue-tracker-github-ecc-produkt.md`: die Fassung für Produkt-Repos. Tickets liegen in `ECCdigital/tickets`, eine lokale Session übernimmt sie, setzt den Zustand im Board Arbeit und schließt sie über den Pull Request. Siehe „Produkt-Repos“.
 - `claude-md-github-actions.md`: der Baustein „Laufen in GitHub Actions“ für die `CLAUDE.md` des Repos.
-- `ecc-setup.md`: wie das Setup die Vorlage anwendet (Werte einsetzen, keine Triage-Labels, `CLAUDE.md`, Deny-Regel).
+- `ecc-setup.md`: wie das Setup die Vorlage anwendet (Werte einsetzen, keine Triage-Labels, `CLAUDE.md`, Deny-Regel), in `tickets` und in Produkt-Repos.
 - `SKILL.md`: zwei Zeilen, die „GitHub ECC“ anbieten. Sonst ist die Datei Matts Stand.
 
 Dazu kommt, was der Fork selbst braucht:
@@ -35,6 +36,7 @@ Einen neuen Stand freigeben:
 3. Den Sync starten: `gh workflow run ecc-sync.yml -R ECCdigital/tickets-probe -f tag=ecc-<n>`. Er öffnet je einen Pull Request in `tickets-probe` und `tickets`. Er bricht ab, wenn der Tag nicht auf `main` liegt oder Tag und Version nicht zusammenpassen. Den Lauf zeigt `gh run list -R ECCdigital/tickets-probe --workflow ecc-sync.yml`.
 4. In `tickets-probe` mergen. Sagt der Pull Request, dass sich der Setup-Skill geändert hat, dort das Setup neu ausführen: `/setup-matt-pocock-skills`, Vorlage „GitHub ECC“. Dann den Abnahme-Durchlauf fahren.
 5. Danach in `tickets` mergen und dort ebenso das Setup neu ausführen. Die Ausgabe des Setups ist in beiden Repos gleich.
+   - Ändert sich `issue-tracker-github-ecc-produkt.md`, das Setup in den eingerichteten Produkt-Repos neu ausführen. Dorthin kommt kein Sync.
 6. Lokal aktualisieren, siehe unten.
 
 Einen Sync wiederholen: derselbe Befehl. Ein schon offener Pull Request wird aktualisiert, statt doppelt aufzugehen.
@@ -92,6 +94,25 @@ gh pr create -R ECCdigital/skills --base main --head upstream --title "Matts Sta
 - Mergen mit Merge-Commit, nicht mit Squash, damit die nächste Übernahme sauber bleibt.
 - Konflikte sind nur an den ECC-Stellen möglich: die zwei Zeilen in `SKILL.md` des Setup-Skills, `version` in `plugin.json` und `name` in `marketplace.json`. Die ECC-Zeilen bleiben. Die Version setzt der nächste Tag.
 - Danach einen neuen Stand freigeben, wie oben.
+
+## Produkt-Repos
+
+In einem Repo mit Code eines Produkts, etwa einem von Biletado, bearbeitet eine lokale Session Tickets aus `ECCdigital/tickets`. Dafür braucht das Repo einmal das Setup mit der Fassung „GitHub ECC, Produkt-Repo“:
+
+1. Die ECC-Fassung ist lokal installiert, siehe unten, und `gh` hat den Scope `project`: `gh auth refresh -s project`.
+2. Im Produkt-Repo `claude` starten, dann `/setup-matt-pocock-skills`, Vorlage „GitHub ECC, Produkt-Repo“. Das Setup schreibt `docs/agents/issue-tracker.md`, `docs/agents/domain.md` und den Block `## Agent skills` in `CLAUDE.md` (oder `AGENTS.md`).
+3. Das Ergebnis per Pull Request nach den Regeln des Repos committen.
+
+Danach startet man die Arbeit an einem Ticket mit `/implement <URL des Tickets>`. `/implement` selbst kennt den Tracker nicht. Der Block in `CLAUDE.md` schickt die Session zu `docs/agents/issue-tracker.md`, und dort stehen Übernehmen, Zustand, Branch `<n>-<stichwort>` und `Closes ECCdigital/tickets#<n>` im Pull Request.
+
+Den Zustand setzt die Session mit `gh project item-add`, `gh project field-list` und `gh project item-edit`, nicht mit `board.sh`:
+
+- `board.sh` liegt nur in `tickets`. Aus einem Produkt-Repo bräuchte es einen Klon von `tickets` an einem bekannten Pfad, auf aktuellem Stand und auf `main`. Der Pfad ist auf jedem Rechner anders, und liegt der Klon auf einem anderen Branch, liefe ein ungeprüfter Stand des Skripts.
+- Ein Skript aus dem Netz in eine Shell zu leiten, kommt nicht in Frage.
+- Die `gh`-Befehle brauchen nur den Scope `project`, sind in jedem Permission-Prompt lesbar und ändern genau ein Feld an genau einem Eintrag.
+- Sie prüfen die Werte nicht wie `board.sh`. Das braucht es hier nicht, weil die Session nur Status auf „In Arbeit“ oder „Review“ setzt.
+
+Welche Produkt-Repos das Setup bekommen, entscheidet Arbeitsweise 08 (Repo-Mindeststandard).
 
 ## Lokal installieren
 
