@@ -38,7 +38,10 @@ Triage-Labels wie `needs-triage` oder `ready-for-agent` gibt es hier nicht. Die 
 - **Gefragte Person einer Grilling-Runde**: die eine Erwähnung in der ersten Zeile jedes Runden-Kommentars.
   - An einer Klärung ist das die eingetragene Person, ohne Assignee die treibende Person.
   - An einem Ticket ist es die einbringende Person, sofern die Bestätigung der Weiche niemand anderen nennt.
-- Die Logins der Rollen stehen als Repo-Variablen `HAUPTENTWICKLER`, `KUNDENBETREUUNG` und `BETRIEB` (`gh variable get <name>`).
+- Rollen und Zuständigkeiten stehen in `zuordnung.json`. Du liest sie nur über `.github/scripts/zustaendig.sh`, nie die Datei selbst. Aufbau und Pflege stehen in der README unter „Zuordnung“, die Hilfe im Kopf des Skripts.
+  - `zustaendig.sh rolle <Rolle>` gibt die Logins einer Rolle aus, durch Komma getrennt. Rollen sind `Hauptentwickler:in` und `Kundenbetreuung`.
+  - `zustaendig.sh wer [<Schwerpunkt>] [Produkt=<Produkt>] [Projekt=<Projekt>] [--hauptentwickler]` gibt die Reihenfolge der Zuständigkeit als eine Zeile JSON aus. Die erste Person ist `reihenfolge[0]`. Nennt `hinweise` etwas, sagst du es der Person.
+  - Nennt die Repo-Variable `ZUORDNUNG` eine andere Datei (`gh variable get ZUORDNUNG`, etwa in `tickets-probe`), setzt du sie lokal vor den Befehl: `ZUORDNUNG=<datei> .github/scripts/zustaendig.sh …`.
 
 ## Board Arbeit
 
@@ -134,10 +137,10 @@ Nach dem Spec fragst du die Person: Deckt ein laufendes Projekt die Anforderung?
 
 - **Ja**: Du ergänzt unter `## Notes` die Zeile `- Keine Freigabe nötig: <Projekt> deckt die Anforderung.` Weiter mit `/to-tickets`.
 - **Nein**: Die Karte wartet auf Freigabe. Der Spec ist die Grundlage des Angebots.
-  1. Poste an der Karte die Anfrage. Die Logins der Kundenbetreuung liefert `gh variable get KUNDENBETREUUNG`, jedes bekommt ein @:
+  1. Poste an der Karte die Anfrage an die erste Kundenbetreuung der Karte. Produkt und Projekt der Karte zeigt `board.sh zeige <karte>`. Die Person ist `reihenfolge[0]` aus `.github/scripts/zustaendig.sh wer Kundenbetreuung Produkt=<Produkt> Projekt=<Projekt>`. Hat die Karte kein Projekt, lässt du `Projekt=` weg. Nur diese Person bekommt ein @:
 
      ```
-     **Freigabe angefragt**: @<login> @<login> bitte ein Angebot auf Grundlage des [Spec](<URL des Spec>).
+     **Freigabe angefragt**: @<login> bitte ein Angebot auf Grundlage des [Spec](<URL des Spec>).
      Kein laufendes Projekt deckt diese Anforderung. Vermerkt hier als Kommentar die Freigabe, etwa „Freigabe: Angebot <Nummer> angenommen“, oder die Absage mit Grund.
      ```
 
