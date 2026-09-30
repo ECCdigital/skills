@@ -11,6 +11,7 @@ Zusätzlich zu Schritt 1 des Setups:
 
 - `gh --version`: Lokale Kanten brauchen `gh` ab 2.94. Ist es älter, sag es.
 - `.claude/skills/README.md`: der Stand der ECC-Fassung (Tag `ecc-<n>`), den der Sync ins Repo gebracht hat. Fehlt die Datei, nimm den Stand aus `.claude-plugin/plugin.json` des installierten Plugins und sag es.
+- `CONTEXT.md` oder `CONTEXT-MAP.md` an der Wurzel: So hieß das Glossar vor `ecc-7`, die Skills suchen nur noch `GLOSSARY.md` und `GLOSSARY-MAP.md`. Liegt noch eine alte Datei da, sag der Person, sie per Pull Request mit `git mv` umzubenennen, samt der Verweise im Repo.
 
 ## 2. Fragen
 
@@ -24,7 +25,7 @@ Nach der Bestätigung des Entwurfs (Schritt 3 des Setups):
 
 - `docs/agents/issue-tracker.md` aus [issue-tracker-github-ecc.md](./issue-tracker-github-ecc.md). Ersetze nur `<tag>` durch den Stand aus der Erkundung. Sonst übernimmst du die Vorlage wörtlich. Andere Platzhalter wie `<karte>` oder `{owner}` bleiben stehen, sie gelten beim Lesen.
 - `docs/agents/domain.md` aus [domain.md](./domain.md), wörtlich.
-- Die Datei aus Schritt 4 ist `CLAUDE.md`. Fehlt sie, legst du sie an, ohne zu fragen. Sie beginnt dann mit `# Anforderungen und Tickets von ECC Digital` und dem Satz „Sprache in Issues, Kommentaren und Commits: Deutsch, mit den Begriffen aus `CONTEXT.md`.“ Ein `AGENTS.md` legst du nicht an.
+- Die Datei aus Schritt 4 ist `CLAUDE.md`. Fehlt sie, legst du sie an, ohne zu fragen. Sie beginnt dann mit `# Anforderungen und Tickets von ECC Digital` und dem Satz „Sprache in Issues, Kommentaren und Commits: Deutsch, mit den Begriffen aus `GLOSSARY.md`.“ Ein `AGENTS.md` legst du nicht an.
 - Der Block `## Agent skills` lautet so:
 
   ```markdown
@@ -36,7 +37,7 @@ Nach der Bestätigung des Entwurfs (Schritt 3 des Setups):
 
   ### Domain docs
 
-  Single-context: one `CONTEXT.md` plus `docs/adr/` at the root. See `docs/agents/domain.md`.
+  Single-context: one `GLOSSARY.md` plus `docs/adr/` at the root. See `docs/agents/domain.md`.
 
   ### Skills im Repo
 
@@ -60,6 +61,7 @@ Gilt statt der Abschnitte 1 bis 4 für die Fassung „GitHub ECC, Produkt-Repo�
 Zusätzlich zu Schritt 1 des Setups:
 
 - Den Stand nimmst du aus `.claude-plugin/plugin.json` des installierten Plugins. Die Datei liegt drei Ordner über dem Ordner dieses Skills. Ihre Version `<Matts Version>-ecc.<n>` heißt Stand `ecc-<n>`.
+- `CONTEXT.md` oder `CONTEXT-MAP.md` an der Wurzel: wie in Abschnitt 1.
 - `gh auth status`: Fehlt dem Token der Scope `project`, sag der Person `gh auth refresh -s project`. Ohne ihn setzt keine Session den Zustand im Board.
 - Standard-Branch: `gh repo view --json defaultBranchRef --jq .defaultBranchRef.name`. Nennt die Doku des Repos einen anderen Branch für neue Arbeit, etwa `develop`, sag der Person: `Closes` im Pull Request schließt das Ticket nur beim Merge in den Standard-Branch.
 
@@ -86,7 +88,7 @@ Nach der Bestätigung des Entwurfs:
 
   ### Domain docs
 
-  Single-context: one `CONTEXT.md` plus `docs/adr/` at the root. See `docs/agents/domain.md`.
+  Single-context: one `GLOSSARY.md` plus `docs/adr/` at the root. See `docs/agents/domain.md`.
   ```
 
 - Mehr schreibt das Setup nicht: in der Datei nur den Block `## Agent skills`. Einen Abschnitt „Laufen in GitHub Actions“ und die Deny-Regel für `.claude/skills` bekommt ein Produkt-Repo nicht. Alles andere in der Datei bleibt Zeichen für Zeichen.

@@ -6,7 +6,7 @@ Dieses Repo enthält Code eines Produkts. Die Tickets dazu liegen nicht hier, so
 
 - Jeder `gh`-Befehl an Tickets bekommt `-R ECCdigital/tickets`. Ohne ihn meint `gh` dieses Repo.
 - Eine Nummer wie `#42`, `ECCdigital/tickets#42` oder die URL `https://github.com/ECCdigital/tickets/issues/42` meint ein Issue in `ECCdigital/tickets`.
-- Die Begriffe der Arbeitsweise (Ticket, Zustand, Definition of Ready, Board) stehen in `CONTEXT.md` von `ECCdigital/tickets`: `gh api repos/ECCdigital/tickets/contents/CONTEXT.md -H "Accept: application/vnd.github.raw"`.
+- Die Begriffe der Arbeitsweise (Ticket, Zustand, Definition of Ready, Board) stehen in `GLOSSARY.md` von `ECCdigital/tickets`: `gh api repos/ECCdigital/tickets/contents/GLOSSARY.md -H "Accept: application/vnd.github.raw"`.
 
 ## Ein Ticket
 
