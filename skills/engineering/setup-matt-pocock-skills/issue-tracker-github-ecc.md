@@ -2,7 +2,7 @@
 
 Erzeugt vom Setup der ECC-Fassung (`/setup-matt-pocock-skills`, Vorlage „GitHub ECC“), Stand `<tag>`. Nicht von Hand ändern: Die Vorlage liegt im Fork `ECCdigital/skills`. Nach einem neuen Stand führst du das Setup neu aus.
 
-Anforderungen, Tickets, Karten und Klärungen sind Issues in diesem Repo: `ECCdigital/tickets`, zum Testen `ECCdigital/tickets-probe`. Du arbeitest mit `gh`, das Repo ergibt sich aus `git remote -v`. Hat der Klon mehrere Remotes, braucht `gh` einen Standard: einmal `gh repo set-default ECCdigital/tickets`, für die Probe `GH_REPO=ECCdigital/tickets-probe` vor jedem Befehl. In `gh api` setzt `gh` die Platzhalter `{owner}` und `{repo}` selbst ein. Die Begriffe stehen in `CONTEXT.md`.
+Anforderungen, Tickets, Karten und Klärungen sind Issues in diesem Repo: `ECCdigital/tickets`, zum Testen `ECCdigital/tickets-probe`. Du arbeitest mit `gh`, das Repo ergibt sich aus `git remote -v`. Hat der Klon mehrere Remotes, braucht `gh` einen Standard: einmal `gh repo set-default ECCdigital/tickets`, für die Probe `GH_REPO=ECCdigital/tickets-probe` vor jedem Befehl. In `gh api` setzt `gh` die Platzhalter `{owner}` und `{repo}` selbst ein. Die Begriffe stehen in `GLOSSARY.md`.
 
 ## Arten von Issues
 
@@ -183,7 +183,7 @@ Nach dem bestätigten Zuschnitt legst du die Tickets in der Reihenfolge der Abh�
 
   ## Definition of Ready
 
-  <je nach Typ wie in `CONTEXT.md`. Fehler: **Schritte zum Reproduzieren** und **Erwartetes Verhalten**. Feature: **Ziel** in einem Satz und **Akzeptanzkriterien** als Liste mit `- [ ]`. Aufgabe: **Ergebnis** in einem Satz.>
+  <je nach Typ wie in `GLOSSARY.md`. Fehler: **Schritte zum Reproduzieren** und **Erwartetes Verhalten**. Feature: **Ziel** in einem Satz und **Akzeptanzkriterien** als Liste mit `- [ ]`. Aufgabe: **Ergebnis** in einem Satz.>
 
   ## Blockiert von
 
