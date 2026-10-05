@@ -15,6 +15,20 @@ Ein Issue ist genau eines von:
 
 Ausnahme: Das Sicht-Issue trägt das Label `anforderungs-sicht`. Es ist nie eine Anforderung.
 
+## Block der Auswertung
+
+Die Auswertung schreibt in jedes Issue mit einem nächsten Schritt einen Block an den Anfang des Texts: den Kasten „Nächster Schritt“, auf einer Karte darunter den Entscheidungsbaum. Er steht zwischen zwei Markern, jeder auf einer eigenen Zeile:
+
+```
+<!-- naechster-schritt:anfang -->
+…
+<!-- naechster-schritt:ende -->
+```
+
+- Nur ein Block ganz am Anfang zählt, davor stehen höchstens Leerzeilen. Er ist die Ausnahme für den Anfang des Texts: Er darf vor `## Anforderung` einer Karte und vor `## Question` einer Klärung stehen.
+- Was den Anfang des Texts liest, übergeht ihn, etwa bei der ersten Zeile „Eingebracht von …“. Ziel, Notizen und Entscheidungen einer Karte liest du aus ihren Abschnitten darunter, nicht aus dem Block.
+- Den Block schreibt nur die Auswertung. Schreibst du einen Text, etwa mit `/wayfinder`, `/to-spec` oder `/to-tickets`, lässt du ihn Zeichen für Zeichen stehen, auch wenn er veraltet wirkt. Du änderst, verschiebst und entfernst ihn nicht und setzt nichts davor. Hole den Text dafür direkt vor dem Schreiben neu.
+
 ## Labels
 
 | Label | Bedeutung | Setzt | Entfernt |
@@ -34,7 +48,7 @@ Triage-Labels wie `needs-triage` oder `ready-for-agent` gibt es hier nicht. Die 
 
 - **Eingetragene Person einer Klärung**: der Assignee. Eine Klärung hat höchstens eine. Eine Research-Klärung ohne Assignee gehört dem Agent. Ein Bot kann nicht Assignee sein.
 - **Treibende Hauptentwickler:in**: der Assignee der Karte.
-- **Einbringende Person**: die Autor:in des Issues. Bei Mail-Eingang ist es die Person aus der ersten Zeile „Eingebracht von @<login> per Mail am <Datum>“.
+- **Einbringende Person**: die Autor:in des Issues. Bei Mail-Eingang ist es die Person aus der ersten Zeile „Eingebracht von @<login> per Mail am <Datum>“. Ein Block der Auswertung davor zählt nicht.
 - **Gefragte Person einer Grilling-Runde**: die eine Erwähnung in der ersten Zeile jedes Runden-Kommentars.
   - An einer Klärung ist das die eingetragene Person, ohne Assignee mit Zugriff die treibende Person. Fehlt auch sie, trägt die Auswertung beim Start die erste Hauptentwickler:in der Zuständigkeit der Karte ein.
   - An einem Ticket ist es die Person aus der Zeile „Gefragte Person: …“ der Weiche: die einbringende Person, wenn sie zum Team gehört, sonst die erste Kundenbetreuung von Produkt oder Projekt. Nennt die Bestätigung der Weiche jemand anderen, gilt diese Person.
@@ -57,7 +71,7 @@ Triage-Labels wie `needs-triage` oder `ready-for-agent` gibt es hier nicht. Die 
 
 ## Grundbefehle
 
-- **Issue anlegen**: `gh issue create --title "..." --body-file <datei>`, mit Label nach den Arten oben. Ein neues Issue ohne Label und ohne Typ ist eine Anforderung und startet die Weiche.
+- **Issue anlegen**: `gh issue create --title "..." --body-file <datei>`, mit Label nach den Arten oben. Ein neues Issue ohne Label und ohne Typ ist eine Anforderung und startet die Weiche. Ein Kommentar daran stößt sie neu an, solange es weder Label noch Typ hat.
 - **Ticket anlegen**: mit Issue Type in einem Aufruf: `gh api repos/{owner}/{repo}/issues -f title="..." -F body=@<datei> -f type=<Fehler|Feature|Aufgabe> --jq .number`. Nicht mit `gh issue create --type`: Es setzt den Typ erst in einem zweiten Schritt, und dann startet die Weiche.
 - **Issue lesen**: `gh issue view <n> --comments`. Labels, Assignees und Typ mit `--json labels,assignees,issueType`.
 - **Issues auflisten**: `gh issue list --state open --json number,title,labels,assignees`, gefiltert mit `--label`, `--state` oder `--search`.
@@ -84,10 +98,10 @@ Run `gh issue view <number> --comments`. Ist es eine Karte und läuft `/to-spec`
 Used by `/wayfinder`. In seiner Sprache ist die map die Karte, ein ticket eine Klärung und der driving dev die treibende Hauptentwickler:in. Die Karte ist ein Issue mit `wayfinder:map`, ihre Klärungen sind Sub-Issues.
 
 - **Map aus einer Anforderung** (der Normalfall): Die Weiche hat das Issue schon zur Karte gemacht, mit `wayfinder:map`, der treibenden Person als Assignee und im Board. Du legst kein neues Issue an.
-  - Der ursprüngliche Text der Anforderung bleibt unverändert als Abschnitt `## Anforderung` am Anfang des Karten-Texts. Darunter folgen die Abschnitte der Karte aus `/wayfinder`: `## Destination`, `## Notes`, `## Decisions so far`, `## Not yet specified`, `## Out of scope`.
-  - Hole den Text mit `gh issue view <karte> --json body --jq .body` und schreibe ihn mit `gh issue edit <karte> --body-file <datei>`.
+  - Der ursprüngliche Text der Anforderung bleibt unverändert als Abschnitt `## Anforderung` am Anfang des Karten-Texts. Davor steht höchstens der Block der Auswertung. Darunter folgen die Abschnitte der Karte aus `/wayfinder`: `## Destination`, `## Notes`, `## Decisions so far`, `## Not yet specified`, `## Out of scope`.
+  - Hole den Text mit `gh issue view <karte> --json body --jq .body` und schreibe ihn mit `gh issue edit <karte> --body-file <datei>`. Der Block der Auswertung bleibt dabei Zeichen für Zeichen stehen.
 - **Map ohne Anforderung** (Ausnahme): `gh issue create --label wayfinder:map --assignee @me`, dann ins Board mit Zustand Backlog, Produkt und Projekt.
-- **Child ticket (Klärung)**: `gh issue create --title "..." --label wayfinder:<art> --parent <karte> --body-file <datei>`. Der Text beginnt mit `## Question`.
+- **Child ticket (Klärung)**: `gh issue create --title "..." --label wayfinder:<art> --parent <karte> --body-file <datei>`. Der Text beginnt mit `## Question`. Später setzt die Auswertung ihren Block davor.
   - Höchstens eine eingetragene Person, mit `--assignee <login>`. Eine Research-Klärung ohne Assignee übernimmt der Agent.
   - Klärungen bekommen keinen Issue Type und kommen nie ins Board.
 - **Blocking**: native Abhängigkeiten, im zweiten Durchgang: `gh issue edit <n> --add-blocked-by <nummern>`. Lokale Kanten brauchen `gh` ab 2.94, prüfe mit `gh --version`.
@@ -123,7 +137,7 @@ Used by `/wayfinder`. In seiner Sprache ist die map die Karte, ein ticket eine K
 
 Ist auf einer Karte nichts mehr zu entscheiden, zieht die treibende Hauptentwickler:in lokal `/to-spec` und danach `/to-tickets`. In GitHub Actions läuft beides nie. Die Karte ist die Anforderung selbst. Nennt die Person keine Karte, fragst du nach ihrer Nummer.
 
-Den Karten-Text holst und schreibst du wie beim Kartieren. Du ergänzt nur Zeilen. Der übrige Text bleibt Zeichen für Zeichen, auch HTML-Kommentare wie `<!-- … -->`.
+Den Karten-Text holst und schreibst du wie beim Kartieren. Du ergänzt nur Zeilen. Der übrige Text bleibt Zeichen für Zeichen, auch HTML-Kommentare wie `<!-- … -->` und der Block der Auswertung am Anfang.
 
 ### Spec
 
@@ -161,6 +175,7 @@ Das Label entfernt nur der Freigabe-Vermerk, nie eine lokale Session. Hat die Pe
 Prüfe zuerst, bevor du einen Zuschnitt entwirfst:
 
 - Trägt die Karte `freigabe:wartet`, legst du keine Tickets an und entwirfst keinen Zuschnitt. Du sagst: „Karte #<n> wartet auf Freigabe. Tickets entstehen erst nach dem Freigabe-Vermerk.“ Dann endest du.
+- Steht unter `## Notes` schon eine Zeile `- Tickets:`, gibt es die Tickets schon. Du legst keine an und entwirfst keinen Zuschnitt. Du nennst die Tickets aus der Zeile und machst weiter mit „Karte übergeben“. Ist die Karte schon geschlossen, sagst du das und endest.
 - Steht unter `## Notes` weder eine Freigabe noch „Keine Freigabe nötig“, klärst du das zuerst wie unter „Freigabe“.
 - Grundlage ist der Spec, den `## Notes` verlinkt.
 
@@ -168,8 +183,6 @@ Nach dem bestätigten Zuschnitt legst du die Tickets in der Reihenfolge der Abh�
 
 - Jedes Ticket bekommt einen Issue Type im selben Aufruf, wie unter „Ticket anlegen“.
 - Kein Label, kein Assignee, kein `--parent`. Tickets sind keine Sub-Issues der Karte. Ein Triage-Label bekommen sie nicht, denn Bereit setzt ein Mensch.
-- Ins Board mit Zustand Backlog und dem Produkt und Projekt der Karte: die Werte mit `board.sh zeige <karte>`, dann `board.sh setze <n> Zustand=Backlog Produkt=<Produkt> Projekt=<Projekt>`. Hat die Karte kein Projekt, lässt du `Projekt=` weg.
-- Blockiert-von-Kanten sind nativ. Du setzt sie, wenn alle Tickets angelegt sind: `gh issue edit <n> --add-blocked-by <nummern>`.
 - Der Text folgt dieser Form statt der `<issue-template>` aus `/to-tickets`:
 
   ```
@@ -190,11 +203,18 @@ Nach dem bestätigten Zuschnitt legst du die Tickets in der Reihenfolge der Abh�
   - #<n>, oder „Nichts, kann sofort starten.“
   ```
 
+Gleich nach dem Anlegen, noch vor Board und Kanten, ergänzt du unter `## Notes` der Karte die Zeile `- Tickets: #<a>, #<b>, …` mit allen angelegten Tickets in der Reihenfolge des Anlegens. An ihr erkennt die Auswertung, dass die Karte zu übergeben ist, und ein zweiter Aufruf von `/to-tickets` legt keine Dubletten an. Scheitert das Anlegen mittendrin, hörst du auf, schreibst die Zeile mit den Tickets, die es schon gibt, und nennst die fehlenden.
+
+Danach:
+
+- Ins Board mit Zustand Backlog und dem Produkt und Projekt der Karte: die Werte mit `board.sh zeige <karte>`, dann `board.sh setze <n> Zustand=Backlog Produkt=<Produkt> Projekt=<Projekt>`. Hat die Karte kein Projekt, lässt du `Projekt=` weg.
+- Blockiert-von-Kanten sind nativ. Du setzt sie jetzt, da alle Tickets angelegt sind: `gh issue edit <n> --add-blocked-by <nummern>`.
+
 ### Karte übergeben
 
-Die Karte ist kein Parent der Tickets. Sind alle Tickets angelegt, schließt die treibende Person sie. Frag vorher kurz, dann:
+Die Karte ist kein Parent der Tickets. Steht unter `## Notes` die Zeile `- Tickets:`, schließt die treibende Person die Karte. Frag vorher kurz. Sagt sie nein, bleibt die Karte offen, und ein späterer Aufruf von `/to-tickets` übergibt nur. Sonst:
 
-1. Kommentar an der Karte:
+1. Kommentar an der Karte, mit jedem Ticket aus der Zeile `- Tickets:`:
 
    ```
    **Karte übergeben**
