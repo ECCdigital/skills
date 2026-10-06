@@ -17,7 +17,7 @@ Dazu kommt, was der Fork selbst braucht:
 - `.claude-plugin/plugin.json`: nur `version`, siehe Tags.
 - `.claude-plugin/marketplace.json`: nur `name` (`ecc`) und `description`.
 - `ECC.md`: diese Datei.
-- Matts Workflow `release.yml` ist im Fork abgeschaltet (`gh workflow disable release.yml`). Die Datei bleibt unverändert.
+- Matts Workflows `release.yml`, `needs-info.yml` und `triage-label.yml` sind im Fork abgeschaltet (`gh workflow disable <datei>`). Die Dateien bleiben unverändert. Issues sind im Fork aus.
 
 Alles andere ist Matts Stand. Prüfen: `git diff --stat upstream main`.
 
@@ -94,6 +94,17 @@ gh pr create -R ECCdigital/skills --base main --head upstream --title "Matts Sta
 - Mergen mit Merge-Commit, nicht mit Squash, damit die nächste Übernahme sauber bleibt.
 - Konflikte sind nur an den ECC-Stellen möglich: die zwei Zeilen in `SKILL.md` des Setup-Skills, `version` in `plugin.json` und `name` in `marketplace.json`. Die ECC-Zeilen bleiben. Die Version setzt der nächste Tag.
 - Danach einen neuen Stand freigeben, wie oben.
+
+Hebt Matt seine Version, gibt es immer einen Konflikt in `plugin.json`. Den nicht im Pull Request von `upstream` lösen: GitHub würde dabei `main` in `upstream` mergen, und `upstream` wäre nicht mehr Matts `main`. Stattdessen `upstream` wie oben pushen, dann lokal:
+
+```bash
+git switch -c ecc/matt-<Matts Version> origin/main
+git merge --no-ff origin/upstream
+```
+
+- Im Konflikt `version` auf `<Matts Version>-ecc.<n>` setzen. Der Pull Request dieses Branches gibt damit zugleich den neuen Stand frei.
+- `git diff --stat origin/upstream HEAD` zeigt danach nur die ECC-Dateien aus „Was ECC-eigen ist“.
+- Bringt Matt neue Workflows mit, sie nach dem Merge abschalten wie `release.yml` und oben eintragen.
 
 ## Produkt-Repos
 
