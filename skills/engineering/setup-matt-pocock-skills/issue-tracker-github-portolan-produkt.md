@@ -1,0 +1,77 @@
+# Issue-Tracker: GitHub Portolan, Produkt-Repo
+
+Erzeugt vom Setup der Skills (`/setup-matt-pocock-skills`, Vorlage „GitHub Portolan, Produkt-Repo“), Stand `<tag>`. Nicht von Hand ändern: Die Vorlage liegt im Fork `<fork>`. Nach einem neuen Stand führst du das Setup neu aus.
+
+Dieses Repo enthält Code eines Produkts. Die Tickets dazu liegen nicht hier, sondern als Issues in `<anforderungs-repo>`, zusammen mit Anforderungen, Karten und Klärungen. Issues dieses Repos sind keine Tickets.
+
+- Jeder `gh`-Befehl an Tickets bekommt `-R <anforderungs-repo>`. Ohne ihn meint `gh` dieses Repo.
+- Eine Nummer wie `#42`, `<anforderungs-repo>#42` oder die URL `https://github.com/<anforderungs-repo>/issues/42` meint ein Issue in `<anforderungs-repo>`.
+- Die Begriffe der Arbeitsweise (Ticket, Zustand, Definition of Ready, Board) stehen in `GLOSSARY.md` von `<anforderungs-repo>`: `gh api repos/<anforderungs-repo>/contents/GLOSSARY.md -H "Accept: application/vnd.github.raw"`.
+
+## Ein Ticket
+
+- Ein Ticket ist ein Issue in `<anforderungs-repo>` mit Issue Type Fehler, Feature oder Aufgabe. Ohne Typ ist es eine Anforderung, eine Karte oder eine Klärung.
+- **Lesen**: `gh issue view <n> -R <anforderungs-repo> --comments`. Typ, Assignees und Zustand: `gh issue view <n> -R <anforderungs-repo> --json state,issueType,assignees,projectItems`. Der Zustand ist `status.name` des Eintrags im Board.
+- **Vorgabe** ist der Abschnitt `## Definition of Ready` im Ticket-Text, dazu „Was entsteht“ und die Herkunft (Karte und Spec), wenn es sie gibt:
+  - Fehler: Schritte zum Reproduzieren und erwartetes Verhalten.
+  - Feature: Ziel in einem Satz und Akzeptanzkriterien.
+  - Aufgabe: Ergebnis in einem Satz.
+- **Zustände** im Board, Feld Status: Eingang, Backlog, Bereit, In Arbeit, Review, Erledigt, Verworfen.
+
+## Board
+
+Das Board ist das Org-Board, das die Repo-Variable `BOARD` von `<anforderungs-repo>` nennt: `gh variable get BOARD -R <anforderungs-repo>`. Im Text heißt die Nummer `<board>`. `gh` braucht dafür den Scope `project`. Scheitert ein Befehl daran, sagst du der Person: `gh auth refresh -s project`.
+
+Einen Zustand setzt du mit `gh project`, jeden Befehl einzeln:
+
+1. Item-Id: `gh project item-add <board> --owner <org> --url https://github.com/<anforderungs-repo>/issues/<n> --format json --jq .id`. Steht das Ticket schon im Board, liefert das denselben Eintrag.
+2. Projekt-Id: `gh project view <board> --owner <org> --format json --jq .id`.
+3. Feld-Id und Id des Zustands: `gh project field-list <board> --owner <org> --format json --jq '.fields[] | select(.name == "Status") | {id, options: [.options[] | {id, name}]}'`.
+4. Setzen: `gh project item-edit --id <item-id> --project-id <projekt-id> --field-id <feld-id> --single-select-option-id <zustand-id>`.
+5. Prüfen: `gh issue view <n> -R <anforderungs-repo> --json projectItems`.
+
+Du setzt nur das Feld Status, nur am Ticket, an dem du arbeitest, und nur „In Arbeit“ und „Review“. Bereit, Erledigt, Verworfen und alle anderen Felder setzt ein Mensch. `board.sh` gibt es hier nicht, du nimmst die Befehle oben.
+
+## Ein Ticket bearbeiten
+
+Gilt für jede Session, die an einem Ticket arbeitet, etwa `/implement <URL des Tickets>`. Die Schritte ergänzen den Skill.
+
+1. **Prüfen**: Lies das Ticket samt Zustand.
+   - Ohne Issue Type ist es kein Ticket. Sag das und ende.
+   - Ist es geschlossen, Erledigt oder Verworfen, sag das und ende.
+   - Steht es nicht auf Bereit, In Arbeit oder Review, oder fehlt die Definition of Ready, sag das. Bereit setzt nur ein Mensch. Du machst nur weiter, wenn die Person es ausdrücklich will.
+   - Ist eine andere Person Assignee, nenne sie und frag, bevor du weitermachst.
+2. **Übernehmen**, als erste Schreibaktion:
+   - Ohne Assignee: `gh issue edit <n> -R <anforderungs-repo> --add-assignee @me`.
+   - Zustand „In Arbeit“, wie unter „Board“. Steht er schon dort, bleibt er.
+3. **Branch** `<n>-<stichwort>`: das Stichwort aus dem Titel, klein, mit Bindestrichen, ohne Umlaute, etwa `42-csv-export`. Bist du auf dem Standard-Branch, legst du ihn von dort an: `git switch -c <n>-<stichwort>`. Bist du schon auf einem Branch für dieses Ticket, bleibst du dort. Den Standard-Branch nennt `gh repo view --json defaultBranchRef --jq .defaultBranchRef.name`.
+4. **Umsetzen** nach dem Skill, auf diesem Branch. Die Definition of Ready ist die Vorgabe.
+   - Was sie nicht deckt oder was ihr widerspricht, fragst du nach.
+   - Neue Arbeit, die sich zeigt, ist eine neue Anforderung. Du nennst sie. Will die Person sie anlegen, dann mit einer Zeile Titel, ohne Label, Typ und Assignee: `gh issue create -R <anforderungs-repo> --title "..." --body "..."`. Die Weiche in `<anforderungs-repo>` ordnet sie ein.
+   - Bei `/code-review` ist der Fixpunkt der Standard-Branch und die Vorgabe das Ticket.
+5. **Pull Request**, wenn die Person ihn will: den Branch pushen, dann `gh pr create --base <standard-branch> --title "..." --body-file <datei>`. Der Text endet mit der Zeile `Closes <anforderungs-repo>#<n>`. Der Merge schließt dann das Ticket.
+   - Mehrere Pull Requests zu einem Ticket: Die früheren tragen `Refs <anforderungs-repo>#<n>`, nur der letzte `Closes`. Ist offen, ob es der letzte ist, fragst du.
+   - `Closes` wirkt nur, wenn der Pull Request in den Standard-Branch dieses Repos geht. Geht er in einen anderen Branch, schreibst du `Refs` und sagst der Person, dass ein Mensch das Ticket nach dem Merge schließt.
+6. **Review**: Mit dem Pull Request, der `Closes` trägt, setzt du den Zustand „Review“. Nach einem Pull Request mit `Refs` bleibt „In Arbeit“.
+
+Danach arbeiten Menschen weiter: Eine andere Person prüft den Pull Request, ein Mensch merged, der Merge schließt das Ticket, und ein Mensch setzt Erledigt. Das Ticket schließt du nicht selbst.
+
+## Pull requests as a triage surface
+
+**PRs as a request surface: no.** Anforderungen kommen als Issues in `<anforderungs-repo>` herein.
+
+## When a skill says "publish to the issue tracker"
+
+Hier entstehen keine Specs und keine Tickets. Specs und Tickets entstehen aus einer Karte in `<anforderungs-repo>`, lokal in einem Klon davon mit `/to-spec` und `/to-tickets`. Läuft so ein Skill hier, sag das und frag, ob stattdessen eine Anforderung entstehen soll (siehe „Umsetzen“).
+
+## When a skill says "fetch the relevant ticket"
+
+`gh issue view <n> -R <anforderungs-repo> --comments`. Bei `/code-review` steht die Nummer im Text des Pull Requests oder in Commits als `<anforderungs-repo>#<n>`.
+
+## Wayfinding operations
+
+Karten und Klärungen liegen in `<anforderungs-repo>`. `/wayfinder` läuft in einem Klon von `<anforderungs-repo>` nach dessen `docs/agents/issue-tracker.md`. Hier liest du Karten und Klärungen nur: `gh issue view <n> -R <anforderungs-repo> --comments`.
+
+## Triage
+
+Triage-Labels gibt es nicht. Die Weiche in `<anforderungs-repo>` ersetzt `/triage`. Verlangt ein Skill ein Triage-Label, setzt du keins.

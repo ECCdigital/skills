@@ -12,4 +12,4 @@ Run typechecking regularly, single test files regularly, and the full test suite
 
 Commit your work to the current branch.
 
-Review (ECC-Ergänzung): Danach prüft ein frischer Review-Subagent die Arbeit und meldet nur, du besserst nach, und ein neuer prüft erneut. Lies dafür [review.md](./review.md) und folge ihm Schritt für Schritt.
+Review (Portolan-Ergänzung): Danach prüft ein frischer Review-Subagent die Arbeit und meldet nur, du besserst nach, und ein neuer prüft erneut. Lies dafür [review.md](./review.md) und folge ihm Schritt für Schritt.

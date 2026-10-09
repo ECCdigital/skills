@@ -1,6 +1,6 @@
 # Review als frischer Subagent
 
-ECC-Ergänzung zu `implement`. Die Arbeit prüft ein Review-Subagent in frischem Kontext, damit du dir die Prüfung nicht selbst bescheinigst. Er meldet nur. Jede Änderung kommt von dir, und danach prüft ein neuer Review-Subagent erneut.
+Portolan-Ergänzung zu `implement`. Die Arbeit prüft ein Review-Subagent in frischem Kontext, damit du dir die Prüfung nicht selbst bescheinigst. Er meldet nur. Jede Änderung kommt von dir, und danach prüft ein neuer Review-Subagent erneut.
 
 ## Was der Review-Subagent bekommt
 
