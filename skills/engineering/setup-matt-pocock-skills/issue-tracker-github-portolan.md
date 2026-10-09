@@ -1,8 +1,8 @@
-# Issue-Tracker: GitHub ECC
+# Issue-Tracker: GitHub Portolan
 
-Erzeugt vom Setup der ECC-Fassung (`/setup-matt-pocock-skills`, Vorlage „GitHub ECC“), Stand `<tag>`. Nicht von Hand ändern: Die Vorlage liegt im Fork `ECCdigital/skills`. Nach einem neuen Stand führst du das Setup neu aus.
+Erzeugt vom Setup der Skills (`/setup-matt-pocock-skills`, Vorlage „GitHub Portolan“), Stand `<tag>`. Nicht von Hand ändern: Die Vorlage liegt im Fork `<fork>`. Nach einem neuen Stand führst du das Setup neu aus.
 
-Anforderungen, Tickets, Karten und Klärungen sind Issues in diesem Repo: `ECCdigital/tickets`, zum Testen `ECCdigital/tickets-probe`. Du arbeitest mit `gh`, das Repo ergibt sich aus `git remote -v`. Hat der Klon mehrere Remotes, braucht `gh` einen Standard: einmal `gh repo set-default ECCdigital/tickets`, für die Probe `GH_REPO=ECCdigital/tickets-probe` vor jedem Befehl. In `gh api` setzt `gh` die Platzhalter `{owner}` und `{repo}` selbst ein. Die Begriffe stehen in `GLOSSARY.md`.
+Anforderungen, Tickets, Karten und Klärungen sind Issues in diesem Repo: `<anforderungs-repo>`. Ein Probe-Repo zum Testen hat dieselbe Datei. Du arbeitest mit `gh`, das Repo ergibt sich aus `git remote -v`. Hat der Klon mehrere Remotes, braucht `gh` einen Standard: einmal `gh repo set-default <anforderungs-repo>`, für ein anderes Repo `GH_REPO=<org>/<repo>` vor jedem Befehl. In `gh api` setzt `gh` die Platzhalter `{owner}` und `{repo}` selbst ein. Die Begriffe stehen in `GLOSSARY.md`.
 
 ## Arten von Issues
 
@@ -46,11 +46,11 @@ Triage-Labels wie `needs-triage` oder `ready-for-agent` gibt es hier nicht. Die 
 
 ## Skripte
 
-`zustaendig.sh` und `board.sh` gehören zum Werkzeug im Repo `ECCdigital/portolan`. Der Text unten nennt sie nur beim Namen. Lokal liegen sie im Klon von portolan neben diesem Klon, unter `../portolan/.github/scripts/`. Die Einstellungs-Datei findet `zustaendig.sh` im Klon, aus dem du es aufrufst: `../portolan/.github/scripts/zustaendig.sh rolle Kundenbetreuung`. Was `board.sh` braucht, steht unter „Board Arbeit“.
+`zustaendig.sh` und `board.sh` gehören zum Werkzeug im Repo `<werkzeug>`. Der Text unten nennt sie nur beim Namen. Lokal liegen sie im Klon von portolan neben diesem Klon, unter `../portolan/.github/scripts/`. Die Einstellungs-Datei findet `zustaendig.sh` im Klon, aus dem du es aufrufst: `../portolan/.github/scripts/zustaendig.sh rolle Kundenbetreuung`. Was `board.sh` braucht, steht unter „Board“.
 
 - Nennt die Umgebung `PORTOLAN` einen anderen Pfad zum Klon von portolan, setzt du ihn statt `../portolan` ein.
 - Fehlt `../portolan`, hat dieser Klon aber noch `.github/scripts/zustaendig.sh`, ist das Werkzeug noch nicht umgezogen. Dann rufst du `.github/scripts/<skript>` auf.
-- Fehlt beides, sagst du der Person: „Der Klon von portolan fehlt. Lege ihn einmal neben diesem Klon an: `gh repo clone ECCdigital/portolan ../portolan`.“ Danach rufst du das Skript erneut.
+- Fehlt beides, sagst du der Person: „Der Klon von portolan fehlt. Lege ihn einmal neben diesem Klon an: `gh repo clone <werkzeug> ../portolan`.“ Danach rufst du das Skript erneut.
 - In GitHub Actions liegen beide unter `.github/scripts/` im Arbeitsverzeichnis, den Arbeitsbereich setzt der Workflow. Dort rufst du sie so auf, wie der Prompt sie nennt.
 
 ## Personen
@@ -67,18 +67,18 @@ Triage-Labels wie `needs-triage` oder `ready-for-agent` gibt es hier nicht. Die 
   - `zustaendig.sh rolle <Rolle>` gibt die Logins einer Rolle aus, durch Komma getrennt. Rollen sind `Hauptentwickler:in` und `Kundenbetreuung`.
   - `zustaendig.sh team <login>` gibt `ja` aus, wenn die Person in der Zuordnung steht, sonst `nein`.
   - `zustaendig.sh wer [<Schwerpunkt>] [Produkt=<Produkt>] [Projekt=<Projekt>] [--hauptentwickler]` gibt die Reihenfolge der Zuständigkeit als eine Zeile JSON aus. Die erste Person ist `reihenfolge[0]`. Nennt `hinweise` etwas, sagst du es der Person.
-  - `zustaendig.sh grilling <login>` gibt `live` oder `asynchron` aus, `zustaendig.sh ablauf` den Schalter `v1` oder `v2`.
-  - Nennt die Repo-Variable `EINSTELLUNGEN` eine andere Datei (`gh variable get EINSTELLUNGEN`, etwa in `tickets-probe`), setzt du sie lokal vor den Befehl: `EINSTELLUNGEN=<datei> ../portolan/.github/scripts/zustaendig.sh …`. Fehlt `EINSTELLUNGEN`, gilt noch die alte Repo-Variable `ZUORDNUNG`, solange sie gesetzt ist. Dann setzt du `ZUORDNUNG=<datei>` statt `EINSTELLUNGEN=<datei>`.
+  - `zustaendig.sh grilling <login>` gibt `live` oder `asynchron` aus, `zustaendig.sh ablauf` den Schalter `v1` oder `v2`, `zustaendig.sh arbeitsbereich` Org, Repo, Board und Bot des Arbeitsbereichs.
+  - Nennt die Repo-Variable `EINSTELLUNGEN` eine andere Datei (`gh variable get EINSTELLUNGEN`, etwa im Probe-Repo), setzt du sie lokal vor den Befehl: `EINSTELLUNGEN=<datei> ../portolan/.github/scripts/zustaendig.sh …`. Fehlt `EINSTELLUNGEN`, gilt noch die alte Repo-Variable `ZUORDNUNG`, solange sie gesetzt ist. Dann setzt du `ZUORDNUNG=<datei>` statt `EINSTELLUNGEN=<datei>`.
 
-## Board Arbeit
+## Board
 
-- Tickets und Karten stehen im Org-Board, das die Repo-Variable `BOARD` nennt: für `tickets` Nr. 11 „Arbeit“, für `tickets-probe` Nr. 12 „Arbeit (Probe)“. Klärungen kommen nie ins Board. Das Board nimmt nichts von selbst auf.
-- Der Zustand steht im eingebauten Feld Status. Dazu kommen die Felder Produkt und Projekt. Ihre Auswahlwerte liest du aus dem Board (`gh project field-list <board> --owner ECCdigital`). Eine zweite Liste gibt es nicht.
-- Ab Bereit: Bereit und Erledigt setzt ein Mensch. In Arbeit und Review setzt die lokale Session, die im Repo des Produkts am Ticket arbeitet, nach der Vorlage „GitHub ECC, Produkt-Repo“. Die eingebauten Workflows des Boards bleiben aus, weil „Item closed“ auch verworfene Einträge auf Erledigt setzen würde.
-- Ins Board: `gh project item-add <board> --owner ECCdigital --url <issue-url>`, dann die Felder mit `gh project item-edit`.
-- Einfacher geht es mit `board.sh` (siehe „Skripte“). Es prüft die Werte, bevor es schreibt, und nimmt auch einen eindeutigen Teil eines Namens, etwa die MOCO-Kennung.
+- Tickets und Karten stehen im Org-Board, das die Repo-Variable `BOARD` nennt (`gh variable get BOARD`, dieselbe Nummer wie `board` in der Einstellungs-Datei). Im Text heißt die Nummer `<board>`. Klärungen kommen nie ins Board. Das Board nimmt nichts von selbst auf.
+- Der Zustand steht im eingebauten Feld Status. Dazu kommen die Felder Produkt und Projekt. Ihre Auswahlwerte liest du aus dem Board (`gh project field-list <board> --owner <org>`). Eine zweite Liste gibt es nicht.
+- Ab Bereit: Bereit und Erledigt setzt ein Mensch. In Arbeit und Review setzt die lokale Session, die im Repo des Produkts am Ticket arbeitet, nach der Vorlage „GitHub Portolan, Produkt-Repo“. Die eingebauten Workflows des Boards bleiben aus, weil „Item closed“ auch verworfene Einträge auf Erledigt setzen würde.
+- Ins Board: `gh project item-add <board> --owner <org> --url <issue-url>`, dann die Felder mit `gh project item-edit`.
+- Einfacher geht es mit `board.sh` (siehe „Skripte“). Es prüft die Werte, bevor es schreibt, und nimmt auch einen eindeutigen Teil eines Namens, etwa die Kennung eines Projekts.
   - `board.sh setze <n> Zustand=Backlog Produkt=<Produkt> Projekt=<Projekt>` nimmt das Issue ins Board auf und setzt die Felder. `board.sh zeige <n>` zeigt sie, `board.sh felder` die Auswahlwerte.
-  - Lokal braucht es die Umgebung `BOARD` (`gh variable get BOARD`) und `GITHUB_REPOSITORY`, etwa `BOARD=12 GITHUB_REPOSITORY=ECCdigital/tickets-probe ../portolan/.github/scripts/board.sh zeige 10`.
+  - Lokal braucht es die Umgebung `BOARD` (`gh variable get BOARD`) und `GITHUB_REPOSITORY`, etwa `BOARD=<board> GITHUB_REPOSITORY=<anforderungs-repo> ../portolan/.github/scripts/board.sh zeige 10`.
 
 ## Grundbefehle
 
