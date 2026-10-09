@@ -36,7 +36,7 @@ Die Auswertung schreibt in jedes Issue mit einem nächsten Schritt einen Block a
 | `wayfinder:map` | Karte | Weiche-Bestätigung | – |
 | `wayfinder:research`, `wayfinder:prototype`, `wayfinder:grilling`, `wayfinder:task` | Klärung mit ihrer Art; `task` ist die Vorarbeit | `/wayfinder` | – |
 | `weiche:vorschlag` | Weiche vorgeschlagen, wartet auf Bestätigung | Weiche-Vorschlag | Weiche-Bestätigung |
-| `agent:runde` | An diesem Issue laufen Grilling-Runden; bewusst anders als die Art `wayfinder:grilling` | Weiche-Bestätigung, Auswertung, Mensch | Grilling-Runde beim Ergebnis |
+| `agent:runde` | An diesem Issue laufen Grilling-Runden; bewusst anders als die Art `wayfinder:grilling` | Weiche-Bestätigung (nur Ablauf `v1`), Auswertung, Mensch | Grilling-Runde beim Ergebnis, lokale Session beim Umschalten auf live |
 | `agent:laeuft` | Der Agent hat eine Klärung übernommen (Claim) | Auswertung beim Start | Research-Lauf beim Abschluss; ein Mensch für einen Neustart |
 | `freigabe:wartet` | Karte wartet auf Freigabe | treibende Person nach dem Spec | Freigabe-Vermerk |
 | `stoerungsverdacht` | Weiche vermutet eine Störung | Weiche-Vorschlag | – |
@@ -61,11 +61,13 @@ Triage-Labels wie `needs-triage` oder `ready-for-agent` gibt es hier nicht. Die 
 - **Gefragte Person einer Grilling-Runde**: die eine Erwähnung in der ersten Zeile jedes Runden-Kommentars.
   - An einer Klärung ist das die eingetragene Person, ohne Assignee mit Zugriff die treibende Person. Fehlt auch sie, trägt die Auswertung beim Start die erste Hauptentwickler:in der Zuständigkeit der Karte ein.
   - An einem Ticket ist es die Person aus der Zeile „Gefragte Person: …“ der Weiche: die einbringende Person, wenn sie zum Team gehört, sonst die erste Kundenbetreuung von Produkt oder Projekt. Nennt die Bestätigung der Weiche jemand anderen, gilt diese Person.
+  - **Live oder asynchron**: Gibt `zustaendig.sh ablauf` `v2` aus, wird die gefragte Person so gegrillt, wie `zustaendig.sh grilling <login>` sagt: `live` in einer lokalen Session (siehe „Grilling-Session lokal“), `asynchron` als Grilling-Runde in GitHub Actions. Dann setzt die Auswertung `agent:runde` an einer frei gewordenen Grilling-Klärung und an einem Ticket mit Grilling nur bei `asynchron`, die Weiche-Bestätigung setzt es nicht mehr. Bei `live` nennt der Kasten der Person die lokale Session mit Befehl. Bei `v1` gilt alles hier wie bisher.
   - Antwortet die gefragte Person 5 Werktage nicht, holt die Auswertung die nächste Person der Reihenfolge dazu (**Vertretung**), per Kommentar mit Erwähnung. Die Frist beginnt je Vertretung neu. Die erste Antwort der gefragten Person oder einer erwähnten Vertretung zählt, und wer zuerst antwortet, ist ab dann gefragt. Am Ende der Reihenfolge erwähnt die Auswertung einmal alle Hauptentwickler:innen.
 - Rollen und Zuständigkeiten stehen in der Einstellungs-Datei `einstellungen.json`. Du liest sie nur über `zustaendig.sh` (siehe „Skripte“), nie die Datei selbst. Aufbau und Pflege stehen in der README unter „Einstellungs-Datei“, die Hilfe im Kopf des Skripts.
   - `zustaendig.sh rolle <Rolle>` gibt die Logins einer Rolle aus, durch Komma getrennt. Rollen sind `Hauptentwickler:in` und `Kundenbetreuung`.
   - `zustaendig.sh team <login>` gibt `ja` aus, wenn die Person in der Zuordnung steht, sonst `nein`.
   - `zustaendig.sh wer [<Schwerpunkt>] [Produkt=<Produkt>] [Projekt=<Projekt>] [--hauptentwickler]` gibt die Reihenfolge der Zuständigkeit als eine Zeile JSON aus. Die erste Person ist `reihenfolge[0]`. Nennt `hinweise` etwas, sagst du es der Person.
+  - `zustaendig.sh grilling <login>` gibt `live` oder `asynchron` aus, `zustaendig.sh ablauf` den Schalter `v1` oder `v2`.
   - Nennt die Repo-Variable `EINSTELLUNGEN` eine andere Datei (`gh variable get EINSTELLUNGEN`, etwa in `tickets-probe`), setzt du sie lokal vor den Befehl: `EINSTELLUNGEN=<datei> ../portolan/.github/scripts/zustaendig.sh …`. Fehlt `EINSTELLUNGEN`, gilt noch die alte Repo-Variable `ZUORDNUNG`, solange sie gesetzt ist. Dann setzt du `ZUORDNUNG=<datei>` statt `EINSTELLUNGEN=<datei>`.
 
 ## Board Arbeit
@@ -129,9 +131,11 @@ Used by `/wayfinder`. In seiner Sprache ist die map die Karte, ein ticket eine K
   - Klärungen einer anderen eingetragenen Person nennst du, du nimmst sie nicht.
   - Eine Grilling-Klärung mit `blocker` über 0 nimmst du nicht, auch wenn du ihre eingetragene Person bist. Sie war blockiert, und sobald ihr letzter Blocker geschlossen ist, setzt die Auswertung bei ihrem nächsten Lauf von selbst `agent:runde`. Die Auswertung läuft bei jedem geschlossenen Issue und werktags früh. Die Grilling-Runde läuft dann in GitHub Actions. Nähmst du die Klärung lokal, würde die Person zweimal gegrillt, einmal davon in einem bezahlten Lauf. Du nennst sie mit diesem Grund.
     - Ausnahme: `agent:runde` war an ihr schon einmal gesetzt. Die Auswertung setzt es je Klärung nur einmal. Hat ein Mensch es danach entfernt, nimmst du sie wie jede andere Klärung. Prüfen: `gh api repos/{owner}/{repo}/issues/<n>/events --paginate --jq '.[] | select(.event == "labeled" and .label.name == "agent:runde") | .created_at'` gibt dann mindestens eine Zeile aus.
+    - Ausnahme mit Ablauf `v2` (`zustaendig.sh ablauf`): Bist du die gefragte Person der Klärung (eingetragen, ohne Assignee die treibende Person) und sagt `zustaendig.sh grilling <du>` `live`, nimmst du sie. Die Auswertung setzt dann kein `agent:runde`, die Klärung wartet auf deine lokale Session. Bei `asynchron` nennst du sie wie oben.
 - **Claim**: Ein Mensch trägt sich als Assignee ein, falls noch niemand eingetragen ist: `gh issue edit <n> --add-assignee @me`, als erste Schreibaktion. Ist er schon eingetragen, gehört ihm die Klärung bereits. Der Agent claimt per Label `agent:laeuft`, weil ein Bot nicht Assignee sein kann.
 - **Research beim Kartieren**: Research-Klärungen ohne Assignee startet der Agent in GitHub Actions, sobald sie frei sind. Er legt die Befunde auf einen Branch `research/<name>` in diesem Repo. Eine lokale Session startet für sie keine Subagents. Will die treibende Person eine Research selbst lösen, trägt sie sich vorher als Assignee ein.
 - **Grilling-Runden**: Das Label `agent:runde` startet asynchrone Grilling-Runden des Agents. Eine Klärung mit `agent:runde` nimmt keine lokale Session. Eine Grilling-Klärung, die blockiert war, bekommt das Label von der Auswertung, sobald ihr letzter Blocker geschlossen ist. Auch sie nimmst du nicht, siehe Frontier query.
+  - Ausnahme: Die Person nennt dir genau diese Klärung und will sie live klären. Das ist ein **Umschalten auf live**, und die lokale Session gewinnt. Entferne zuerst das Label (`gh issue edit <n> --remove-label agent:runde`), dann grillst du. Offene Runden und ihre Antworten im Thread liest du vorher und setzt dort an. Die Auswertung setzt das Label danach nie mehr von selbst. Umgekehrt startet `agent:runde` von Hand jederzeit Runden, auch bei `live`.
 - **Resolve**: in dieser Reihenfolge.
   1. Die Antwort ist ein Kommentar, der mit `## Antwort` beginnt.
   2. Eine Zeile unter `## Decisions so far` der Karte: `- [<Titel>](<URL>): <Kurzfazit>`.
@@ -141,6 +145,36 @@ Used by `/wayfinder`. In seiner Sprache ist die map die Karte, ein ticket eine K
 - **Out of scope**: Erst eine Zeile unter `## Out of scope` der Karte ergänzen, dann die Klärung mit `--reason "not planned"` schließen. Das Schließen kommt auch hier zuletzt.
 - **Karte zu einer Klärung**: `gh api repos/{owner}/{repo}/issues/<n>/parent --jq .number`.
 - Läufst du in GitHub Actions, legst du keine Klärungen und keinen Nebel an. Du nennst sie in der Antwort, und die treibende Person entscheidet.
+
+## Grilling-Session lokal
+
+Gilt für jede lokale Session, die einen Menschen grillt: `/wayfinder` an einer Grilling-Klärung, `/to-spec` und `/grilling` an einem Ticket mit Grilling.
+
+- **Fragen mit festen Möglichkeiten** stellst du als Auswahl zum Anklicken mit dem Tool `AskUserQuestion`, die Empfehlung zuerst. Offene Fragen bleiben Text. Das gilt in Claude Code und in T3 Code gleich. T3 Code ist ein optionaler Client, nichts im Ablauf hängt von ihm ab.
+- **Ansetzen**: Lies zu Beginn den Thread des Issues. Steht dort ein Kommentar `## Zwischenstand` (der jüngste zählt) oder eine Grilling-Runde mit Antworten, setzt du dort an: Entscheidungen gelten, offene Fragen sind deine ersten Fragen, Code-Fakten schlägst du nicht neu nach. Trägt das Issue `agent:runde`, schalte zuerst auf live um (siehe „Grilling-Runden“ oben).
+- **Ticket mit Grilling** (`/grilling #<n>`): Gefragt ist die Person aus der Zeile `Gefragte Person: …` der Weiche. Das Ergebnis ist der Abschnitt `## Definition of Ready` im Issue-Text, in der Form nach dem Typ wie unter „Tickets aus einem Spec“, dazu ein Kommentar mit den Entscheidungen und Code-Fakten. Den Text holst und schreibst du wie beim Kartieren, der Block der Auswertung bleibt stehen. Bereit setzt danach ein Mensch.
+- **Zwischenstand**: Endet die Session ohne Ergebnis, weil die Person aufhört, abbricht oder eine Antwort erst später kennt, postest du vor dem Ende genau einen Kommentar an das Issue, an dem du gegrillt hast (die Klärung, die Karte oder Anforderung bei `/to-spec`, das Ticket). Ergebnis heißt: die Antwort einer Klärung, der Spec, die Definition of Ready. Ohne eine einzige neue Entscheidung oder Frage gibt es keinen Zwischenstand. Die erste Zeile ist genau `## Zwischenstand`, an ihr erkennt ihn die Auswertung:
+
+  ```
+  ## Zwischenstand
+
+  Live-Session am <TT.MM.JJJJ> mit <Login>, ohne Ergebnis: <ein Satz, warum>.
+
+  ### Entscheidungen
+
+  - <Entscheidung, mit Grund>
+
+  ### Offene Fragen
+
+  - <Frage>, Empfehlung: <Antwort>
+
+  ### Code-Fakten
+
+  - `<Repo>/<Pfad>:<Zeile>`: <Befund in eigenen Worten>
+  ```
+
+  Code-Fakten nennen Pfad und Zeilen und den Befund in eigenen Worten, höchstens ein paar Zeilen Code, nie Geheimnisse, Zugangsdaten oder Kundendaten. Leere Abschnitte lässt du weg.
+- **Frist**: Der Zwischenstand zählt als Bewegung. Liegt eine Grilling-Session 5 Werktage ohne Ergebnis und ohne Zwischenstand, holt die Auswertung die nächste Person der Reihenfolge dazu, wie an einer Grilling-Runde.
 
 ## Spec und Tickets aus einer Karte
 
