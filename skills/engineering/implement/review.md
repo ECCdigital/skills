@@ -14,8 +14,8 @@ Mehr bekommt er nicht. Was du beim Umsetzen abgewogen hast, liest er im Code und
 ## Ablauf
 
 1. **Committen**: `git status` ist sauber. Das Review liest `git diff <Basis>...HEAD` und sieht nur Committetes.
-2. **Review**: Starte einen neuen Subagent (in Claude Code das Tool `Agent`) mit demselben Modell wie du, im Vordergrund, mit dem Auftrag unten. Du wartest auf seinen Bericht. Der Schritt ist fertig, wenn der Bericht mit einer Zeile `Ergebnis:` endet.
-3. **Auswerten**: Bei `Ergebnis: OHNE BEFUNDE` bist du fertig und nennst der Person die Hinweise. Bei `Ergebnis: BEFUNDE` nach dem ersten Review besserst du nach (Schritt 4), nach dem zweiten ist es ein Fehlversuch.
+2. **Review**: Starte einen neuen Subagent (in Claude Code das Tool `Agent`) mit demselben Modell wie du, im Vordergrund, mit dem Auftrag unten. Du wartest auf seinen Bericht. Der Schritt ist fertig, wenn der Bericht mit einer Zeile `Ergebnis:` endet. Fehlt sie, gilt die Arbeit als ungeprüft, und du startest einmal einen neuen Review-Subagent. Fehlt sie wieder, ist es ein Fehlversuch.
+3. **Auswerten**: Bei `Ergebnis: OHNE BEFUNDE` bist du fertig und nennst der Person die Hinweise. Bei `Ergebnis: BEFUNDE` nach dem ersten Review besserst du nach (Schritt 4), nach dem zweiten ist es ein Fehlversuch. Braucht ein Befund die Entscheidung eines Menschen, ist es gleich ein Fehlversuch.
 4. **Nachbessern**: Jeden Befund behebst du, test-first, wo er sich testen lässt. Hinweise setzt du nur um, wenn es klar besser wird, die übrigen nennst du der Person. Danach sind alle Prüfungen grün, und du committest.
 5. **Erneut prüfen**: Schritt 2 mit einem neuen Subagent und denselben vier Angaben, dann Schritt 3. Der erste Review-Subagent bleibt beendet.
 
@@ -46,7 +46,7 @@ Teil dieses Repos: <Teil, oder: das ganze Ticket>
 
 Vorgehen:
 
-1. Call the Skill tool with "code-review". Der Fixpunkt ist die Basis, die Spec ist die Vorgabe oben. Du holst sie nicht über den Tracker. Du bist der Reviewer und führst den Skill selbst aus.
+1. Call the Skill tool with "code-review" aus derselben Sammlung wie `implement`, als Plugin `mattpocock-skills:code-review`. Er prüft zwei Achsen, Standards und Spec, in je einem Subagent. Hat der Harness einen eigenen Skill gleichen Namens, nimmst du den aus der Sammlung. Der Fixpunkt ist die Basis, die Spec ist die Vorgabe oben. Du holst sie nicht über den Tracker. Du bist der Reviewer und führst den Skill selbst aus.
 2. Lass alle Prüfungen laufen. Eine rote Prüfung läuft ein zweites Mal, gegen wackelnde Tests. Bleibt sie rot, prüfst du sie auf der Basis in einem eigenen Worktree (`git worktree add --detach <ordner> <Basis>`, danach `git worktree remove <ordner>`).
 3. Ordne jeden Fund als Befund oder Hinweis ein.
 
