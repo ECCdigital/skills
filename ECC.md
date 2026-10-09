@@ -123,7 +123,7 @@ Danach startet man die Arbeit an einem Ticket mit `/implement <URL des Tickets>`
 
 Den Zustand setzt die Session mit `gh project item-add`, `gh project field-list` und `gh project item-edit`, nicht mit `board.sh`:
 
-- `board.sh` liegt nur in `tickets`. Aus einem Produkt-Repo bräuchte es einen Klon von `tickets` an einem bekannten Pfad, auf aktuellem Stand und auf `main`. Der Pfad ist auf jedem Rechner anders, und liegt der Klon auf einem anderen Branch, liefe ein ungeprüfter Stand des Skripts.
+- `board.sh` liegt nur im Werkzeug `ECCdigital/portolan`, bis zum Umzug in `tickets`. Aus einem Produkt-Repo bräuchte es dessen Klon an einem bekannten Pfad, auf aktuellem Stand und auf `main`. Der Pfad ist auf jedem Rechner anders, und liegt der Klon auf einem anderen Branch, liefe ein ungeprüfter Stand des Skripts.
 - Ein Skript aus dem Netz in eine Shell zu leiten, kommt nicht in Frage.
 - Die `gh`-Befehle brauchen nur den Scope `project`, sind in jedem Permission-Prompt lesbar und ändern genau ein Feld an genau einem Eintrag.
 - Sie prüfen die Werte nicht wie `board.sh`. Das braucht es hier nicht, weil die Session nur Status auf „In Arbeit“ oder „Review“ setzt.
