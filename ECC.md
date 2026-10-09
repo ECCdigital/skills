@@ -4,13 +4,18 @@ Dieser Fork ist die einzige Quelle der Skills für ECC Digital (ADR 0002 im Repo
 
 ## Was ECC-eigen ist
 
-Matts Skill-Dateien bleiben unverändert, damit Übernahmen ohne Konflikte gehen. Die ECC-Ergänzungen liegen im Setup-Skill `skills/engineering/setup-matt-pocock-skills/`:
+Matts Skill-Dateien bleiben bis auf wenige markierte Zeilen unverändert, damit Übernahmen ohne Konflikte gehen. Die ECC-Ergänzungen liegen in zwei Skills. Die erste ist der Setup-Skill `skills/engineering/setup-matt-pocock-skills/`:
 
 - `issue-tracker-github-ecc.md`: die Tracker-Vorlage „GitHub ECC“, mit Kartieren, Spec, Freigabe und Tickets aus einem Spec.
 - `issue-tracker-github-ecc-produkt.md`: die Fassung für Produkt-Repos. Tickets liegen in `ECCdigital/tickets`, eine lokale Session übernimmt sie, setzt den Zustand im Board Arbeit und schließt sie über den Pull Request. Siehe „Produkt-Repos“.
 - `claude-md-github-actions.md`: der Baustein „Laufen in GitHub Actions“ für die `CLAUDE.md` des Repos.
 - `ecc-setup.md`: wie das Setup die Vorlage anwendet (Werte einsetzen, keine Triage-Labels, `CLAUDE.md`, Deny-Regel), in `tickets` und in Produkt-Repos.
 - `SKILL.md`: zwei Zeilen, die „GitHub ECC“ anbieten. Sonst ist die Datei Matts Stand.
+
+Die zweite ist `skills/engineering/implement/`: das Review als frischer Subagent. Lokal gelten damit dieselben Gates wie für den Agent, niemand bescheinigt sich die Prüfung selbst.
+
+- `review.md`: Ablauf, Fehlversuch und Auftrag an den Review-Subagent, der nur meldet. Seine Kriterien sind die des Review-Agents der Umsetzung durch den Agent.
+- `SKILL.md`: Statt Matts Zeile mit `code-review` vor dem Commit zeigt eine Zeile nach dem Commit auf `review.md`. Der Review-Subagent ruft `code-review` selbst.
 
 Dazu kommt, was der Fork selbst braucht:
 
@@ -92,7 +97,7 @@ gh pr create -R ECCdigital/skills --base main --head upstream --title "Matts Sta
 ```
 
 - Mergen mit Merge-Commit, nicht mit Squash, damit die nächste Übernahme sauber bleibt.
-- Konflikte sind nur an den ECC-Stellen möglich: die zwei Zeilen in `SKILL.md` des Setup-Skills, `version` in `plugin.json` und `name` in `marketplace.json`. Die ECC-Zeilen bleiben. Die Version setzt der nächste Tag.
+- Konflikte sind nur an den ECC-Stellen möglich: die zwei Zeilen in `SKILL.md` des Setup-Skills, die Zeile zum Review in `SKILL.md` von `implement`, `version` in `plugin.json` und `name` in `marketplace.json`. Die ECC-Zeilen bleiben. Die Version setzt der nächste Tag.
 - Danach einen neuen Stand freigeben, wie oben.
 
 Hebt Matt seine Version, gibt es immer einen Konflikt in `plugin.json`. Den nicht im Pull Request von `upstream` lösen: GitHub würde dabei `main` in `upstream` mergen, und `upstream` wäre nicht mehr Matts `main`. Stattdessen `upstream` wie oben pushen, dann lokal:
