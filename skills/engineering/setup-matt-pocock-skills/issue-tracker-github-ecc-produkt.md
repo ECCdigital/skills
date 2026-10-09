@@ -30,7 +30,7 @@ Einen Zustand setzt du mit `gh project`, jeden Befehl einzeln:
 4. Setzen: `gh project item-edit --id <item-id> --project-id <projekt-id> --field-id <feld-id> --single-select-option-id <zustand-id>`.
 5. Prüfen: `gh issue view <n> -R ECCdigital/tickets --json projectItems`.
 
-Du setzt nur das Feld Status, nur am Ticket, an dem du arbeitest, und nur „In Arbeit“ und „Review“. Bereit, Erledigt, Verworfen und alle anderen Felder setzt ein Mensch. `.github/scripts/board.sh` gibt es nur in `ECCdigital/tickets`, hier nimmst du die Befehle oben.
+Du setzt nur das Feld Status, nur am Ticket, an dem du arbeitest, und nur „In Arbeit“ und „Review“. Bereit, Erledigt, Verworfen und alle anderen Felder setzt ein Mensch. `board.sh` gibt es hier nicht, du nimmst die Befehle oben.
 
 ## Ein Ticket bearbeiten
 

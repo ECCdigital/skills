@@ -44,6 +44,15 @@ Die Auswertung schreibt in jedes Issue mit einem nächsten Schritt einen Block a
 
 Triage-Labels wie `needs-triage` oder `ready-for-agent` gibt es hier nicht. Die Weiche ersetzt `/triage`. Verlangt ein Skill ein Triage-Label, setzt du keins. Lege keine Labels an, die nicht in dieser Tabelle stehen.
 
+## Skripte
+
+`zustaendig.sh` und `board.sh` gehören zum Werkzeug im Repo `ECCdigital/portolan`. Der Text unten nennt sie nur beim Namen. Lokal liegen sie im Klon von portolan neben diesem Klon, unter `../portolan/.github/scripts/`. Die Einstellungs-Datei findet `zustaendig.sh` im Klon, aus dem du es aufrufst: `../portolan/.github/scripts/zustaendig.sh rolle Kundenbetreuung`. Was `board.sh` braucht, steht unter „Board Arbeit“.
+
+- Nennt die Umgebung `PORTOLAN` einen anderen Pfad zum Klon von portolan, setzt du ihn statt `../portolan` ein.
+- Fehlt `../portolan`, hat dieser Klon aber noch `.github/scripts/zustaendig.sh`, ist das Werkzeug noch nicht umgezogen. Dann rufst du `.github/scripts/<skript>` auf.
+- Fehlt beides, sagst du der Person: „Der Klon von portolan fehlt. Lege ihn einmal neben diesem Klon an: `gh repo clone ECCdigital/portolan ../portolan`.“ Danach rufst du das Skript erneut.
+- In GitHub Actions liegen beide unter `.github/scripts/` im Arbeitsverzeichnis, den Arbeitsbereich setzt der Workflow. Dort rufst du sie so auf, wie der Prompt sie nennt.
+
 ## Personen
 
 - **Eingetragene Person einer Klärung**: der Assignee. Eine Klärung hat höchstens eine. Eine Research-Klärung ohne Assignee gehört dem Agent. Ein Bot kann nicht Assignee sein.
@@ -53,11 +62,11 @@ Triage-Labels wie `needs-triage` oder `ready-for-agent` gibt es hier nicht. Die 
   - An einer Klärung ist das die eingetragene Person, ohne Assignee mit Zugriff die treibende Person. Fehlt auch sie, trägt die Auswertung beim Start die erste Hauptentwickler:in der Zuständigkeit der Karte ein.
   - An einem Ticket ist es die Person aus der Zeile „Gefragte Person: …“ der Weiche: die einbringende Person, wenn sie zum Team gehört, sonst die erste Kundenbetreuung von Produkt oder Projekt. Nennt die Bestätigung der Weiche jemand anderen, gilt diese Person.
   - Antwortet die gefragte Person 5 Werktage nicht, holt die Auswertung die nächste Person der Reihenfolge dazu (**Vertretung**), per Kommentar mit Erwähnung. Die Frist beginnt je Vertretung neu. Die erste Antwort der gefragten Person oder einer erwähnten Vertretung zählt, und wer zuerst antwortet, ist ab dann gefragt. Am Ende der Reihenfolge erwähnt die Auswertung einmal alle Hauptentwickler:innen.
-- Rollen und Zuständigkeiten stehen in `zuordnung.json`. Du liest sie nur über `.github/scripts/zustaendig.sh`, nie die Datei selbst. Aufbau und Pflege stehen in der README unter „Zuordnung“, die Hilfe im Kopf des Skripts.
+- Rollen und Zuständigkeiten stehen in der Einstellungs-Datei `einstellungen.json`. Du liest sie nur über `zustaendig.sh` (siehe „Skripte“), nie die Datei selbst. Aufbau und Pflege stehen in der README unter „Einstellungs-Datei“, die Hilfe im Kopf des Skripts.
   - `zustaendig.sh rolle <Rolle>` gibt die Logins einer Rolle aus, durch Komma getrennt. Rollen sind `Hauptentwickler:in` und `Kundenbetreuung`.
   - `zustaendig.sh team <login>` gibt `ja` aus, wenn die Person in der Zuordnung steht, sonst `nein`.
   - `zustaendig.sh wer [<Schwerpunkt>] [Produkt=<Produkt>] [Projekt=<Projekt>] [--hauptentwickler]` gibt die Reihenfolge der Zuständigkeit als eine Zeile JSON aus. Die erste Person ist `reihenfolge[0]`. Nennt `hinweise` etwas, sagst du es der Person.
-  - Nennt die Repo-Variable `ZUORDNUNG` eine andere Datei (`gh variable get ZUORDNUNG`, etwa in `tickets-probe`), setzt du sie lokal vor den Befehl: `ZUORDNUNG=<datei> .github/scripts/zustaendig.sh …`.
+  - Nennt die Repo-Variable `EINSTELLUNGEN` eine andere Datei (`gh variable get EINSTELLUNGEN`, etwa in `tickets-probe`), setzt du sie lokal vor den Befehl: `EINSTELLUNGEN=<datei> ../portolan/.github/scripts/zustaendig.sh …`. Fehlt `EINSTELLUNGEN`, gilt noch die alte Repo-Variable `ZUORDNUNG`, solange sie gesetzt ist. Dann setzt du `ZUORDNUNG=<datei>` statt `EINSTELLUNGEN=<datei>`.
 
 ## Board Arbeit
 
@@ -65,9 +74,9 @@ Triage-Labels wie `needs-triage` oder `ready-for-agent` gibt es hier nicht. Die 
 - Der Zustand steht im eingebauten Feld Status. Dazu kommen die Felder Produkt und Projekt. Ihre Auswahlwerte liest du aus dem Board (`gh project field-list <board> --owner ECCdigital`). Eine zweite Liste gibt es nicht.
 - Ab Bereit: Bereit und Erledigt setzt ein Mensch. In Arbeit und Review setzt die lokale Session, die im Repo des Produkts am Ticket arbeitet, nach der Vorlage „GitHub ECC, Produkt-Repo“. Die eingebauten Workflows des Boards bleiben aus, weil „Item closed“ auch verworfene Einträge auf Erledigt setzen würde.
 - Ins Board: `gh project item-add <board> --owner ECCdigital --url <issue-url>`, dann die Felder mit `gh project item-edit`.
-- Einfacher geht es mit `.github/scripts/board.sh` aus dem Repo. Es prüft die Werte, bevor es schreibt, und nimmt auch einen eindeutigen Teil eines Namens, etwa die MOCO-Kennung.
+- Einfacher geht es mit `board.sh` (siehe „Skripte“). Es prüft die Werte, bevor es schreibt, und nimmt auch einen eindeutigen Teil eines Namens, etwa die MOCO-Kennung.
   - `board.sh setze <n> Zustand=Backlog Produkt=<Produkt> Projekt=<Projekt>` nimmt das Issue ins Board auf und setzt die Felder. `board.sh zeige <n>` zeigt sie, `board.sh felder` die Auswahlwerte.
-  - Lokal braucht es die Umgebung `BOARD` (`gh variable get BOARD`) und `GITHUB_REPOSITORY`, etwa `BOARD=12 GITHUB_REPOSITORY=ECCdigital/tickets-probe .github/scripts/board.sh zeige 10`.
+  - Lokal braucht es die Umgebung `BOARD` (`gh variable get BOARD`) und `GITHUB_REPOSITORY`, etwa `BOARD=12 GITHUB_REPOSITORY=ECCdigital/tickets-probe ../portolan/.github/scripts/board.sh zeige 10`.
 
 ## Grundbefehle
 
@@ -153,7 +162,7 @@ Nach dem Spec fragst du die Person: Deckt ein laufendes Projekt die Anforderung?
 
 - **Ja**: Du ergänzt unter `## Notes` die Zeile `- Keine Freigabe nötig: <Projekt> deckt die Anforderung.` Weiter mit `/to-tickets`.
 - **Nein**: Die Karte wartet auf Freigabe. Der Spec ist die Grundlage des Angebots.
-  1. Poste an der Karte die Anfrage an die erste Kundenbetreuung der Karte. Produkt und Projekt der Karte zeigt `board.sh zeige <karte>`. Die Person ist `reihenfolge[0]` aus `.github/scripts/zustaendig.sh wer Kundenbetreuung Produkt=<Produkt> Projekt=<Projekt>`. Hat die Karte kein Projekt, lässt du `Projekt=` weg. Nur diese Person bekommt ein @. Ist `reihenfolge` leer, erwähnst du alle aus `.github/scripts/zustaendig.sh rolle Kundenbetreuung`. Reagiert die Person 5 Werktage nicht, holt die Auswertung die nächste Kundenbetreuung der Karte dazu. Nach der ersten Reaktion, auch einem Zwischenstand wie „Angebot ist raus“, wartet die Karte ohne Frist:
+  1. Poste an der Karte die Anfrage an die erste Kundenbetreuung der Karte. Produkt und Projekt der Karte zeigt `board.sh zeige <karte>`. Die Person ist `reihenfolge[0]` aus `zustaendig.sh wer Kundenbetreuung Produkt=<Produkt> Projekt=<Projekt>`. Hat die Karte kein Projekt, lässt du `Projekt=` weg. Nur diese Person bekommt ein @. Ist `reihenfolge` leer, erwähnst du alle aus `zustaendig.sh rolle Kundenbetreuung`. Reagiert die Person 5 Werktage nicht, holt die Auswertung die nächste Kundenbetreuung der Karte dazu. Nach der ersten Reaktion, auch einem Zwischenstand wie „Angebot ist raus“, wartet die Karte ohne Frist:
 
      ```
      **Freigabe angefragt**: @<login> bitte ein Angebot auf Grundlage des [Spec](<URL des Spec>).
