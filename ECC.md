@@ -12,6 +12,11 @@ Matts Skill-Dateien bleiben unverändert, damit Übernahmen ohne Konflikte gehen
 - `ecc-setup.md`: wie das Setup die Vorlage anwendet (Werte einsetzen, keine Triage-Labels, `CLAUDE.md`, Deny-Regel), in `tickets` und in Produkt-Repos.
 - `SKILL.md`: zwei Zeilen, die „GitHub ECC“ anbieten. Sonst ist die Datei Matts Stand.
 
+Eine zweite liegt im Skill `skills/engineering/implement/`: das Review als frischer Subagent. Lokal gelten damit dieselben Gates wie für den Agent, niemand bescheinigt sich die Prüfung selbst.
+
+- `review.md`: Ablauf, Fehlversuch und Auftrag an den Review-Subagent, der nur meldet. Seine Kriterien sind die des Review-Agents der Umsetzung durch den Agent.
+- `SKILL.md`: Statt Matts Zeile mit `code-review` vor dem Commit zeigt eine Zeile nach dem Commit auf `review.md`. Der Review-Subagent ruft `code-review` selbst.
+
 Dazu kommt, was der Fork selbst braucht:
 
 - `.claude-plugin/plugin.json`: nur `version`, siehe Tags.
@@ -92,7 +97,7 @@ gh pr create -R ECCdigital/skills --base main --head upstream --title "Matts Sta
 ```
 
 - Mergen mit Merge-Commit, nicht mit Squash, damit die nächste Übernahme sauber bleibt.
-- Konflikte sind nur an den ECC-Stellen möglich: die zwei Zeilen in `SKILL.md` des Setup-Skills, `version` in `plugin.json` und `name` in `marketplace.json`. Die ECC-Zeilen bleiben. Die Version setzt der nächste Tag.
+- Konflikte sind nur an den ECC-Stellen möglich: die zwei Zeilen in `SKILL.md` des Setup-Skills, die Zeile zum Review in `SKILL.md` von `implement`, `version` in `plugin.json` und `name` in `marketplace.json`. Die ECC-Zeilen bleiben. Die Version setzt der nächste Tag.
 - Danach einen neuen Stand freigeben, wie oben.
 
 Hebt Matt seine Version, gibt es immer einen Konflikt in `plugin.json`. Den nicht im Pull Request von `upstream` lösen: GitHub würde dabei `main` in `upstream` mergen, und `upstream` wäre nicht mehr Matts `main`. Stattdessen `upstream` wie oben pushen, dann lokal:
