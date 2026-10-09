@@ -16,12 +16,12 @@ Mehr bekommt er nicht. Was du beim Umsetzen abgewogen hast, liest er im Code und
 1. **Committen**: `git status` ist sauber. Das Review liest `git diff <Basis>...HEAD` und sieht nur Committetes.
 2. **Review**: Starte einen neuen Subagent (in Claude Code das Tool `Agent`) mit demselben Modell wie du, im Vordergrund, mit dem Auftrag unten. Du wartest auf seinen Bericht. Der Schritt ist fertig, wenn der Bericht mit einer Zeile `Ergebnis:` endet. Fehlt sie, gilt die Arbeit als ungeprüft, und du startest einmal einen neuen Review-Subagent. Fehlt sie wieder, ist es ein Fehlversuch.
 3. **Auswerten**: Bei `Ergebnis: OHNE BEFUNDE` bist du fertig und nennst der Person die Hinweise. Bei `Ergebnis: BEFUNDE` nach dem ersten Review besserst du nach (Schritt 4), nach dem zweiten ist es ein Fehlversuch. Braucht ein Befund die Entscheidung eines Menschen, ist es gleich ein Fehlversuch.
-4. **Nachbessern**: Jeden Befund behebst du, test-first, wo er sich testen lässt. Hinweise setzt du nur um, wenn es klar besser wird, die übrigen nennst du der Person. Danach sind alle Prüfungen grün, und du committest.
+4. **Nachbessern**: Jeden Befund behebst du, test-first, wo er sich testen lässt. Hinweise setzt du nur um, wenn es klar besser wird, die übrigen nennst du der Person. Danach sind alle Prüfungen grün, außer denen, die schon auf der Basis rot sind, und du committest.
 5. **Erneut prüfen**: Schritt 2 mit einem neuen Subagent und denselben vier Angaben, dann Schritt 3. Der erste Review-Subagent bleibt beendet.
 
 ## Fehlversuch
 
-Bleiben nach dem Nachbessern Befunde, oder braucht ein Befund die Entscheidung eines Menschen (BLOCKIERT), dann endet die Arbeit hier:
+Bleiben nach dem Nachbessern Befunde, braucht ein Befund die Entscheidung eines Menschen (BLOCKIERT), oder endet das Review zweimal ohne Ergebnis, dann endet die Arbeit hier:
 
 - Du nennst der Person die offenen Befunde wörtlich und was du versucht hast.
 - Öffnest du einen Pull Request, dann als Entwurf, mit den offenen Befunden in der Beschreibung.
