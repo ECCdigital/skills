@@ -46,10 +46,10 @@ Triage-Labels wie `needs-triage` oder `ready-for-agent` gibt es hier nicht. Die 
 
 ## Skripte
 
-`zustaendig.sh` und `board.sh` gehören zum Werkzeug im Repo `ECCdigital/portolan`. Der Text unten nennt sie nur beim Namen. Lokal liegen sie im Klon von portolan neben diesem Klon, unter `../portolan/.github/scripts/`. `zustaendig.sh` braucht dort `ARBEITSBEREICH=.` davor, sonst sucht es die Einstellungs-Datei im Klon von portolan und meldet, dass sie fehlt: `ARBEITSBEREICH=. ../portolan/.github/scripts/zustaendig.sh rolle Kundenbetreuung`. Was `board.sh` braucht, steht unter „Board Arbeit“.
+`zustaendig.sh` und `board.sh` gehören zum Werkzeug im Repo `ECCdigital/portolan`. Der Text unten nennt sie nur beim Namen. Lokal liegen sie im Klon von portolan neben diesem Klon, unter `../portolan/.github/scripts/`. Die Einstellungs-Datei findet `zustaendig.sh` im Klon, aus dem du es aufrufst: `../portolan/.github/scripts/zustaendig.sh rolle Kundenbetreuung`. Was `board.sh` braucht, steht unter „Board Arbeit“.
 
 - Nennt die Umgebung `PORTOLAN` einen anderen Pfad zum Klon von portolan, setzt du ihn statt `../portolan` ein.
-- Fehlt `../portolan`, hat dieser Klon aber noch `.github/scripts/zustaendig.sh`, ist das Werkzeug noch nicht umgezogen. Dann rufst du `.github/scripts/<skript>` auf, `zustaendig.sh` auch dort mit `ARBEITSBEREICH=.`.
+- Fehlt `../portolan`, hat dieser Klon aber noch `.github/scripts/zustaendig.sh`, ist das Werkzeug noch nicht umgezogen. Dann rufst du `.github/scripts/<skript>` auf.
 - Fehlt beides, sagst du der Person: „Der Klon von portolan fehlt. Lege ihn einmal neben diesem Klon an: `gh repo clone ECCdigital/portolan ../portolan`.“ Danach rufst du das Skript erneut.
 - In GitHub Actions liegen beide unter `.github/scripts/` im Arbeitsverzeichnis, den Arbeitsbereich setzt der Workflow. Dort rufst du sie so auf, wie der Prompt sie nennt.
 
@@ -66,7 +66,7 @@ Triage-Labels wie `needs-triage` oder `ready-for-agent` gibt es hier nicht. Die 
   - `zustaendig.sh rolle <Rolle>` gibt die Logins einer Rolle aus, durch Komma getrennt. Rollen sind `Hauptentwickler:in` und `Kundenbetreuung`.
   - `zustaendig.sh team <login>` gibt `ja` aus, wenn die Person in der Zuordnung steht, sonst `nein`.
   - `zustaendig.sh wer [<Schwerpunkt>] [Produkt=<Produkt>] [Projekt=<Projekt>] [--hauptentwickler]` gibt die Reihenfolge der Zuständigkeit als eine Zeile JSON aus. Die erste Person ist `reihenfolge[0]`. Nennt `hinweise` etwas, sagst du es der Person.
-  - Nennt die Repo-Variable `EINSTELLUNGEN` eine andere Datei (`gh variable get EINSTELLUNGEN`, etwa in `tickets-probe`), setzt du sie lokal vor den Befehl: `ARBEITSBEREICH=. EINSTELLUNGEN=<datei> ../portolan/.github/scripts/zustaendig.sh …`. Fehlt `EINSTELLUNGEN`, gilt noch die alte Repo-Variable `ZUORDNUNG`, solange sie gesetzt ist. Dann setzt du `ZUORDNUNG=<datei>` statt `EINSTELLUNGEN=<datei>`.
+  - Nennt die Repo-Variable `EINSTELLUNGEN` eine andere Datei (`gh variable get EINSTELLUNGEN`, etwa in `tickets-probe`), setzt du sie lokal vor den Befehl: `EINSTELLUNGEN=<datei> ../portolan/.github/scripts/zustaendig.sh …`. Fehlt `EINSTELLUNGEN`, gilt noch die alte Repo-Variable `ZUORDNUNG`, solange sie gesetzt ist. Dann setzt du `ZUORDNUNG=<datei>` statt `EINSTELLUNGEN=<datei>`.
 
 ## Board Arbeit
 
