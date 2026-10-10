@@ -16,6 +16,8 @@ Ein Issue ist genau eines von:
 
 Ausnahme: Das Sicht-Issue trägt das Label `anforderungs-sicht`. Es ist nie eine Anforderung.
 
+Gibt `zustaendig.sh ablauf` `v2` aus, gilt dazu: Eine Karte wird bei der Übergabe selbst zum **Übergeordneten Ticket**, dem Haupteintrag der Anforderung bis Erledigt (siehe „Übergabe mit Ablauf v2“). Ein Ticket, das Sub-Issue eines Tickets ist, ist ein **Unter-Ticket**: Es hat einen Typ, aber keinen Zustand, steht nicht im Board und erbt Produkt und Projekt vom Haupteintrag. Es gibt genau zwei Ebenen: der Haupteintrag, darunter Klärungen und Unter-Tickets. Ein Unter-Ticket hat nie eigene Sub-Issues.
+
 ## Block der Auswertung
 
 Die Auswertung schreibt in jedes Issue mit einem nächsten Schritt einen Block an den Anfang des Texts: den Kasten „Nächster Schritt“, auf einer Karte darunter den Entscheidungsbaum. Er steht zwischen zwei Markern, jeder auf einer eigenen Zeile:
@@ -28,13 +30,14 @@ Die Auswertung schreibt in jedes Issue mit einem nächsten Schritt einen Block a
 
 - Nur ein Block ganz am Anfang zählt, davor stehen höchstens Leerzeilen. Er ist die Ausnahme für den Anfang des Texts: Er darf vor `## Anforderung` einer Karte und vor `## Question` einer Klärung stehen.
 - Was den Anfang des Texts liest, übergeht ihn, etwa bei der ersten Zeile „Eingebracht von …“. Ziel, Notizen und Entscheidungen einer Karte liest du aus ihren Abschnitten darunter, nicht aus dem Block.
+- Mit Ablauf `v2` steht er nie an einem Unter-Ticket. Was dort ansteht, nennt der Kasten des Haupteintrags, samt dem Fortschritt der Unter-Tickets.
 - Den Block schreibt nur die Auswertung. Schreibst du einen Text, etwa mit `/wayfinder`, `/to-spec` oder `/to-tickets`, lässt du ihn Zeichen für Zeichen stehen, auch wenn er veraltet wirkt. Du änderst, verschiebst und entfernst ihn nicht und setzt nichts davor. Hole den Text dafür direkt vor dem Schreiben neu.
 
 ## Labels
 
 | Label | Bedeutung | Setzt | Entfernt |
 |---|---|---|---|
-| `wayfinder:map` | Karte | Weiche-Bestätigung | – |
+| `wayfinder:map` | Karte | Weiche-Bestätigung | `/to-tickets` bei der Übergabe (nur Ablauf `v2`) |
 | `weg:spec` | Spec-Weg: Anforderung ohne Karte, deren Spec an ihr selbst entsteht; kein `wayfinder:`-Präfix, weil das eine Klärung kennzeichnet | Weiche-Bestätigung (nur Ablauf `v2`) | `/to-tickets` bei der Übergabe |
 | `wayfinder:research`, `wayfinder:prototype`, `wayfinder:grilling`, `wayfinder:task` | Klärung mit ihrer Art; `task` ist die Vorarbeit | `/wayfinder` | – |
 | `weiche:vorschlag` | Weiche vorgeschlagen, wartet auf Bestätigung | Weiche-Vorschlag | Weiche-Bestätigung |
@@ -58,7 +61,7 @@ Triage-Labels wie `needs-triage` oder `ready-for-agent` gibt es hier nicht. Die 
 ## Personen
 
 - **Eingetragene Person einer Klärung**: der Assignee. Eine Klärung hat höchstens eine. Eine Research-Klärung ohne Assignee gehört dem Agent. Ein Bot kann nicht Assignee sein.
-- **Treibende Hauptentwickler:in**: der Assignee der Karte oder des Spec-Wegs.
+- **Treibende Hauptentwickler:in**: der Assignee der Karte oder des Spec-Wegs. Mit Ablauf `v2` bleibt sie nach der Übergabe als Assignee am Haupteintrag, bis er Erledigt ist.
 - **Einbringende Person**: die Autor:in des Issues. Bei Mail-Eingang ist es die Person aus der ersten Zeile „Eingebracht von @<login> per Mail am <Datum>“. Ein Block der Auswertung davor zählt nicht.
 - **Gefragte Person einer Grilling-Runde**: die eine Erwähnung in der ersten Zeile jedes Runden-Kommentars.
   - An einer Klärung ist das die eingetragene Person, ohne Assignee mit Zugriff die treibende Person. Fehlt auch sie, trägt die Auswertung beim Start die erste Hauptentwickler:in der Zuständigkeit der Karte ein.
@@ -74,7 +77,7 @@ Triage-Labels wie `needs-triage` oder `ready-for-agent` gibt es hier nicht. Die 
 
 ## Board
 
-- Tickets und Karten stehen im Org-Board, das die Repo-Variable `BOARD` nennt (`gh variable get BOARD`, dieselbe Nummer wie `board` in der Einstellungs-Datei). Im Text heißt die Nummer `<board>`. Klärungen kommen nie ins Board. Das Board nimmt nichts von selbst auf.
+- Tickets und Karten stehen im Org-Board, das die Repo-Variable `BOARD` nennt (`gh variable get BOARD`, dieselbe Nummer wie `board` in der Einstellungs-Datei). Im Text heißt die Nummer `<board>`. Klärungen kommen nie ins Board, mit Ablauf `v2` auch Unter-Tickets nicht: Im Board stehen nur Haupteinträge. Das Board nimmt nichts von selbst auf.
 - Der Zustand steht im eingebauten Feld Status. Dazu kommen die Felder Produkt und Projekt. Ihre Auswahlwerte liest du aus dem Board (`gh project field-list <board> --owner <org>`). Eine zweite Liste gibt es nicht.
 - Ab Bereit: Bereit und Erledigt setzt ein Mensch. In Arbeit und Review setzt die lokale Session, die im Repo des Produkts am Ticket arbeitet, nach der Vorlage „GitHub Portolan, Produkt-Repo“. Die eingebauten Workflows des Boards bleiben aus, weil „Item closed“ auch verworfene Einträge auf Erledigt setzen würde.
 - Ins Board: `gh project item-add <board> --owner <org> --url <issue-url>`, dann die Felder mit `gh project item-edit`.
@@ -187,7 +190,7 @@ Gibt `zustaendig.sh ablauf` `v2` aus, hat die Weiche fünf Ausgänge: Ticket, Sp
 - **Spec mit Grilling**: Nennt die Bestätigung eine andere gefragte Person, wird erst sie gegrillt, live mit `/grilling #<n>` oder asynchron in Grilling-Runden. Steht danach ein Kommentar `## Antwort`, schreibt die treibende Person den Spec daraus. Fehlt die Antwort noch, wenn `/to-spec` läuft, sagst du das, nennst die gefragte Person und fragst, ob die treibende Person trotzdem schreiben will. Ist die gefragte zugleich die treibende Person, grillt sie sich in der Session von `/to-spec`.
 - **Spec, Freigabe und Tickets** vermerkst du wie an einer Karte unter „Spec und Tickets aus einer Karte“. Statt der Karte steht dort die Anforderung selbst: Der Spec ist ein Kommentar `## Spec` an ihr, die Zeilen `- Spec:`, `- Freigabe am …`, `- Keine Freigabe nötig: …` und `- Tickets:` stehen in ihrem Text unter `## Notes`. Fehlt der Abschnitt, legst du ihn am Ende des Texts an. Der Text der Anforderung darüber bleibt Zeichen für Zeichen, auch der Block der Auswertung.
 - Der **Freigabe-Vermerk** arbeitet auch am Spec-Weg, sobald er `freigabe:wartet` trägt.
-- **Übergabe**: `/to-tickets` übergibt den Spec-Weg wie eine Karte mit Ablauf `v2`. Statt `wayfinder:map` entfernt es `weg:spec`, erst nachdem die Anforderung ihren Issue Type hat: `gh issue edit <n> --remove-label weg:spec`. So ist das Issue nie zugleich ohne Label und ohne Typ, sonst startete die Weiche.
+- **Übergabe**: `/to-tickets` übergibt den Spec-Weg nach „Übergabe mit Ablauf v2“, mit der Anforderung statt der Karte und `weg:spec` statt `wayfinder:map`. Auch hier kommt erst der Typ, dann das Label weg, sonst stünde das Issue ohne beides da und die Weiche startete.
 
 ## Spec und Tickets aus einer Karte
 
@@ -231,14 +234,22 @@ Das Label entfernt nur der Freigabe-Vermerk, nie eine lokale Session. Hat die Pe
 Prüfe zuerst, bevor du einen Zuschnitt entwirfst:
 
 - Trägt die Karte `freigabe:wartet`, legst du keine Tickets an und entwirfst keinen Zuschnitt. Du sagst: „Karte #<n> wartet auf Freigabe. Tickets entstehen erst nach dem Freigabe-Vermerk.“ Dann endest du.
-- Steht unter `## Notes` schon eine Zeile `- Tickets:`, gibt es die Tickets schon. Du legst keine an und entwirfst keinen Zuschnitt. Du nennst die Tickets aus der Zeile und machst weiter mit „Karte übergeben“. Ist die Karte schon geschlossen, sagst du das und endest.
+- Steht unter `## Notes` schon eine Zeile `- Tickets:`, gibt es die Tickets schon. Du legst keine an und entwirfst keinen Zuschnitt. Du nennst die Tickets aus der Zeile und machst weiter mit „Karte übergeben“, mit Ablauf `v2` mit „Übergabe mit Ablauf v2“ ab dem ersten Schritt, der fehlt. Ist die Karte schon geschlossen, sagst du das und endest.
+- Mit Ablauf `v2`: Hat das Issue schon einen Typ und weder `wayfinder:map` noch `weg:spec`, ist es schon Haupteintrag. Du sagst das, nennst seine Unter-Tickets (`gh api repos/{owner}/{repo}/issues/<n>/sub_issues --jq '.[] | "#\(.number) \(.title)"'`) und endest.
 - Steht unter `## Notes` weder eine Freigabe noch „Keine Freigabe nötig“, klärst du das zuerst wie unter „Freigabe“.
 - Grundlage ist der Spec, den `## Notes` verlinkt.
+
+Mit Ablauf `v2` gehört zum Zuschnitt der Issue Type des Haupteintrags (Fehler, Feature oder Aufgabe), den du vorschlägst und die Person bestätigt. Es gibt genau zwei Ebenen: Ist ein Ticket zu groß, teilst du es in zwei Tickets unter derselben Karte, nie in Tickets darunter. Verlangt die Person Tickets unter einem Ticket, schlägst du das Teilen vor. Mehr als 100 Tickets an einer Karte nimmt GitHub nicht. Wären es so viele, sagst du das: Die Anforderung gehört an der Weiche geteilt.
 
 Nach dem bestätigten Zuschnitt legst du die Tickets in der Reihenfolge der Abhängigkeiten an, Blocker zuerst:
 
 - Jedes Ticket bekommt einen Issue Type im selben Aufruf, wie unter „Ticket anlegen“.
-- Kein Label, kein Assignee, kein `--parent`. Tickets sind keine Sub-Issues der Karte. Ein Triage-Label bekommen sie nicht, denn Bereit setzt ein Mensch.
+- Kein Label, kein Assignee. Ein Triage-Label bekommen sie nicht, denn Bereit setzt ein Mensch.
+- Mit Ablauf `v1`: kein `--parent`. Tickets sind keine Sub-Issues der Karte.
+- Mit Ablauf `v2`: Jedes Ticket wird gleich nach dem Anlegen Sub-Issue der Karte, ein Unter-Ticket. Das geht der Regel aus `/to-tickets` vor, das übergeordnete Issue nicht zu ändern.
+  1. Anlegen mit Typ, Nummer und Id ausgeben: `gh api repos/{owner}/{repo}/issues -f title="..." -F body=@<datei> -f type=<Fehler|Feature|Aufgabe> --jq '"\(.number) \(.id)"'`.
+  2. An die Karte hängen: `gh api --method POST repos/{owner}/{repo}/issues/<karte>/sub_issues -F sub_issue_id=<id>`. Die `<id>` ist die zweite Zahl aus 1, nicht die Nummer.
+  3. Nie ein Ticket an ein anderes Ticket hängen und nie `--parent <ticket>`.
 - Der Text folgt dieser Form statt der `<issue-template>` aus `/to-tickets`:
 
   ```
@@ -263,12 +274,14 @@ Gleich nach dem Anlegen, noch vor Board und Kanten, ergänzt du unter `## Notes`
 
 Danach:
 
-- Ins Board mit Zustand Backlog und dem Produkt und Projekt der Karte: die Werte mit `board.sh zeige <karte>`, dann `board.sh setze <n> Zustand=Backlog Produkt=<Produkt> Projekt=<Projekt>`. Hat die Karte kein Projekt, lässt du `Projekt=` weg.
+- Nur mit Ablauf `v1`, mit `v2` stehen Unter-Tickets nie im Board: Ins Board mit Zustand Backlog und dem Produkt und Projekt der Karte: die Werte mit `board.sh zeige <karte>`, dann `board.sh setze <n> Zustand=Backlog Produkt=<Produkt> Projekt=<Projekt>`. Hat die Karte kein Projekt, lässt du `Projekt=` weg.
 - Blockiert-von-Kanten sind nativ. Du setzt sie jetzt, da alle Tickets angelegt sind: `gh issue edit <n> --add-blocked-by <nummern>`.
+
+Mit Ablauf `v2` weiter mit „Übergabe mit Ablauf v2“, sonst mit „Karte übergeben“.
 
 ### Karte übergeben
 
-Die Karte ist kein Parent der Tickets. Steht unter `## Notes` die Zeile `- Tickets:`, schließt die treibende Person die Karte. Frag vorher kurz. Sagt sie nein, bleibt die Karte offen, und ein späterer Aufruf von `/to-tickets` übergibt nur. Sonst:
+Nur mit Ablauf `v1`. Die Karte ist kein Parent der Tickets. Steht unter `## Notes` die Zeile `- Tickets:`, schließt die treibende Person die Karte. Frag vorher kurz. Sagt sie nein, bleibt die Karte offen, und ein späterer Aufruf von `/to-tickets` übergibt nur. Sonst:
 
 1. Kommentar an der Karte, mit jedem Ticket aus der Zeile `- Tickets:`:
 
@@ -283,3 +296,13 @@ Die Karte ist kein Parent der Tickets. Steht unter `## Notes` die Zeile `- Ticke
 3. `gh issue close <karte> --reason completed`.
 
 Die Anforderung ist dann in der Phase Übergeben.
+
+### Übergabe mit Ablauf v2
+
+Die Karte schließt nicht. Sie wird selbst zum Übergeordneten Ticket, dem Haupteintrag der Anforderung bis Erledigt, mit den Unter-Tickets als Sub-Issues. Du fragst nicht, ob du übergeben sollst: Der bestätigte Zuschnitt ist die Übergabe. Sind alle Unter-Tickets angelegt, die Zeile `- Tickets:` geschrieben und die Kanten gesetzt, in dieser Reihenfolge:
+
+1. Issue Type am Haupteintrag, der aus dem Zuschnitt: `gh api --method PATCH repos/{owner}/{repo}/issues/<karte> -f type=<Fehler|Feature|Aufgabe>`. Erst der Typ, dann das Label: So ist die Karte nie ohne beides eine Anforderung im Eingang.
+2. `gh issue edit <karte> --remove-label wayfinder:map`, am Spec-Weg `--remove-label weg:spec` (siehe „Spec-Weg“).
+3. `board.sh setze <karte> Zustand=Backlog`. Produkt und Projekt bleiben, die Unter-Tickets erben sie.
+
+Kein Kommentar „Karte übergeben“, kein Erledigt, nicht schließen, der Assignee bleibt. Der Haupteintrag steht dann auf Backlog. Bereit setzt eine Hauptentwickler:in am Haupteintrag, nicht an den Unter-Tickets. Eine eigene Definition of Ready braucht er nicht, die tragen seine Unter-Tickets. Scheitert ein Schritt, nennst du ihn. Ein späterer Aufruf von `/to-tickets` macht ab dort weiter.
