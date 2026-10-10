@@ -158,7 +158,7 @@ Gilt für jede lokale Session, die einen Menschen grillt: `/wayfinder` an einer 
 
 - **Fragen mit festen Möglichkeiten** stellst du als Auswahl zum Anklicken mit dem Tool `AskUserQuestion`, die Empfehlung zuerst. Offene Fragen bleiben Text. Das gilt in Claude Code und in T3 Code gleich. T3 Code ist ein optionaler Client, nichts im Ablauf hängt von ihm ab.
 - **Ansetzen**: Lies zu Beginn den Thread des Issues. Steht dort ein Kommentar `## Zwischenstand` (der jüngste zählt) oder eine Grilling-Runde mit Antworten, setzt du dort an: Entscheidungen gelten, offene Fragen sind deine ersten Fragen, Code-Fakten schlägst du nicht neu nach. Trägt das Issue `agent:runde`, schalte zuerst auf live um (siehe „Grilling-Runden“ oben).
-- **Ticket mit Grilling** (`/grilling #<n>`): Gefragt ist die Person aus der Zeile `Gefragte Person: …` der Weiche. Das Ergebnis ist der Abschnitt `## Definition of Ready` im Issue-Text, in der Form nach dem Typ wie unter „Tickets aus einem Spec“, dazu ein Kommentar mit den Entscheidungen und Code-Fakten. Den Text holst und schreibst du wie beim Kartieren, der Block der Auswertung bleibt stehen. Bereit setzt danach ein Mensch.
+- **Ticket mit Grilling** (`/grilling #<n>`): Gefragt ist die Person aus der Zeile `Gefragte Person: …` der Weiche. Das Ergebnis ist der Abschnitt `## Definition of Ready` im Issue-Text, in der Form nach dem Typ wie unter „Tickets aus einem Spec“, mit Ablauf `v2` in der erweiterten Form samt Weg (siehe „Erweiterte Definition of Ready“), dazu ein Kommentar mit den Entscheidungen und Code-Fakten. Den Text holst und schreibst du wie beim Kartieren, der Block der Auswertung bleibt stehen. Bereit setzt danach ein Mensch.
 - **Spec-Weg mit Grilling** (`/grilling #<n>` an einem Issue mit `weg:spec`): Gefragt ist die Person aus der Zeile `Gefragte Person: …` der Bestätigung der Weiche. Das Ergebnis ist ein Kommentar, der mit `## Antwort` beginnt, wie an einer Klärung: das Ergebnis in ein bis drei Sätzen, die Entscheidungen und die Code-Fakten. Du schließt nichts und schreibst keinen Spec, das tut danach die treibende Person mit `/to-spec`.
 - **Zwischenstand**: Endet die Session ohne Ergebnis, weil die Person aufhört, abbricht oder eine Antwort erst später kennt, postest du vor dem Ende genau einen Kommentar an das Issue, an dem du gegrillt hast (die Klärung, die Karte oder Anforderung bei `/to-spec`, das Ticket). Ergebnis heißt: die Antwort einer Klärung, der Spec, die Definition of Ready. Ohne eine einzige neue Entscheidung oder Frage gibt es keinen Zwischenstand. Die erste Zeile ist genau `## Zwischenstand`, an ihr erkennt ihn die Auswertung:
 
@@ -277,7 +277,7 @@ Prüfe zuerst, bevor du einen Zuschnitt entwirfst:
 - Steht unter `## Notes` weder eine Freigabe noch „Keine Freigabe nötig“, klärst du das zuerst wie unter „Freigabe“.
 - Grundlage ist der Spec, den `## Notes` verlinkt.
 
-Mit Ablauf `v2` gehört zum Zuschnitt der Issue Type des Haupteintrags (Fehler, Feature oder Aufgabe), den du vorschlägst und die Person bestätigt. Es gibt genau zwei Ebenen: Ist ein Ticket zu groß, teilst du es in zwei Tickets unter derselben Karte, nie in Tickets darunter. Verlangt die Person Tickets unter einem Ticket, schlägst du das Teilen vor. Mehr als 100 Tickets an einer Karte nimmt GitHub nicht. Wären es so viele, sagst du das: Die Anforderung gehört an der Weiche geteilt.
+Mit Ablauf `v2` gehört zum Zuschnitt der Issue Type des Haupteintrags (Fehler, Feature oder Aufgabe), den du vorschlägst und die Person bestätigt. Dazu gehört je Ticket der **Weg**, `Agent` oder `lokal`, nach der Regel unter „Erweiterte Definition of Ready“: Du schlägst ihn mit Grund vor, die treibende Person bestätigt oder ändert ihn, als Auswahl je Ticket mit dem Vorschlag zuerst. Es gibt genau zwei Ebenen: Ist ein Ticket zu groß, teilst du es in zwei Tickets unter derselben Karte, nie in Tickets darunter. Verlangt die Person Tickets unter einem Ticket, schlägst du das Teilen vor. Mehr als 100 Tickets an einer Karte nimmt GitHub nicht. Wären es so viele, sagst du das: Die Anforderung gehört an der Weiche geteilt.
 
 Nach dem bestätigten Zuschnitt legst du die Tickets in der Reihenfolge der Abhängigkeiten an, Blocker zuerst:
 
@@ -301,7 +301,8 @@ Nach dem bestätigten Zuschnitt legst du die Tickets in der Reihenfolge der Abh�
 
   ## Definition of Ready
 
-  <je nach Typ wie in `GLOSSARY.md`. Fehler: **Schritte zum Reproduzieren** und **Erwartetes Verhalten**. Feature: **Ziel** in einem Satz und **Akzeptanzkriterien** als Liste mit `- [ ]`. Aufgabe: **Ergebnis** in einem Satz.>
+  <je nach Typ wie in `GLOSSARY.md`. Fehler: **Schritte zum Reproduzieren** und **Erwartetes Verhalten**. Feature: **Ziel** in einem Satz und **Akzeptanzkriterien** als Liste mit `- [ ]`. Aufgabe: **Ergebnis** in einem Satz.
+   Mit Ablauf `v2` danach die Teile der erweiterten Form, siehe „Erweiterte Definition of Ready“.>
 
   ## Blockiert von
 
@@ -316,6 +317,32 @@ Danach:
 - Blockiert-von-Kanten sind nativ. Du setzt sie jetzt, da alle Tickets angelegt sind: `gh issue edit <n> --add-blocked-by <nummern>`.
 
 Mit Ablauf `v2` weiter mit „Übergabe mit Ablauf v2“, sonst mit „Karte übergeben“.
+
+### Erweiterte Definition of Ready
+
+Gibt `zustaendig.sh ablauf` `v2` aus, trägt jedes Unter-Ticket und jeder Haupteintrag ohne Unter-Tickets die erweiterte Definition of Ready. Sie ist dieselbe prüfbare Vorgabe für den Agent und für Menschen. Es schreiben sie `/to-tickets`, die Grilling-Runde, `/grilling` am Ticket und die Person, die Bereit setzt, alle in dieser Form. Im Abschnitt `## Definition of Ready` stehen erst die Teile nach dem Typ, dann diese, jeder mit genau dieser fetten Beschriftung, sonst findet die Auswertung ihn nicht:
+
+```
+**Testfälle:**
+- <je Akzeptanzkriterium, beim Fehler je erwartetem Verhalten, mindestens ein Fall: Ausgangslage, Handlung, Ergebnis>
+
+**Seams und Schnittstellen:** <wo die Tests ansetzen und welche Schnittstellen sich ändern, mit Pfad>
+
+**Nicht-Ziele:** <was ausdrücklich nicht dazugehört, oder „keine“>
+
+**Prüfung von Ende zu Ende:** <ein Durchgang aus Sicht der Nutzer:innen, der zeigt, dass es läuft>
+
+**Betroffene Repos:** <die Repos des Produkts, die sich ändern>
+
+**Vorbild im Code:** <eine Stelle mit Pfad, die zeigt, wie es hier gemacht wird, oder „keins“ mit Grund>
+
+**Weg:** <Agent | lokal>, <bei lokal der Grund>
+```
+
+- **Weg**: Wer umsetzt, der Agent oder jemand lokal. Standard ist `Agent`. `lokal` schlägst du vor, wenn das Ticket Anmeldung oder Auth, Rechte, Zahlungen oder eine neue Oberfläche ohne Vorbild im Code berührt, mit diesem Grund. Die treibende Person bestätigt. In der Zeile steht genau `Agent` oder `lokal` am Anfang, die Auswertung liest nur das.
+- Seams, Repos und Vorbild schlägst du im Code der Produkte nach, statt zu fragen. Was du nicht findest, schreibst du als Frage in den Zuschnitt, nicht als Vermutung ins Ticket.
+- **Prüfung**: Die Auswertung prüft die Form, nicht den Inhalt. Fehlt einem offenen Unter-Ticket ein Teil, nennt der Kasten des Haupteintrags die Lücken je Unter-Ticket, statt „Bereit setzen“. Die Person, die Bereit setzt, ergänzt sie im Text der Unter-Tickets und entscheidet, ob der Inhalt reicht. Ein Ticket auf Bereit mit Lücken bleibt auf Bereit, der Kasten nennt sie, und der Agent startet erst, wenn sie geschlossen sind.
+- Mit Ablauf `v1` gilt die Form nach dem Typ allein.
 
 ### Karte übergeben
 
@@ -343,7 +370,7 @@ Die Karte schließt nicht. Sie wird selbst zum Übergeordneten Ticket, dem Haupt
 2. `gh issue edit <karte> --remove-label wayfinder:map`, am Spec-Weg `--remove-label weg:spec` (siehe „Spec-Weg“).
 3. `board.sh setze <karte> Zustand=Backlog`. Produkt und Projekt bleiben, die Unter-Tickets erben sie.
 
-Kein Kommentar „Karte übergeben“, kein Erledigt, nicht schließen, der Assignee bleibt. Der Haupteintrag steht dann auf Backlog. Bereit setzt eine Hauptentwickler:in am Haupteintrag, nicht an den Unter-Tickets. Eine eigene Definition of Ready braucht er nicht, die tragen seine Unter-Tickets. Scheitert ein Schritt, nennst du ihn. Ein späterer Aufruf von `/to-tickets` macht ab dort weiter.
+Kein Kommentar „Karte übergeben“, kein Erledigt, nicht schließen, der Assignee bleibt. Der Haupteintrag steht dann auf Backlog. Bereit setzt eine Hauptentwickler:in am Haupteintrag, nicht an den Unter-Tickets. Eine eigene Definition of Ready braucht er nicht, die tragen seine Unter-Tickets in der erweiterten Form. Nennt der Kasten Lücken, schließt sie, wer Bereit setzt, vorher. Scheitert ein Schritt, nennst du ihn. Ein späterer Aufruf von `/to-tickets` macht ab dort weiter.
 
 ## Umsetzung am Haupteintrag mit Ablauf v2
 
@@ -356,7 +383,7 @@ Gilt, wenn `zustaendig.sh ablauf` `v2` ausgibt. Mit `v1` hat jedes Ticket seinen
 
 ### Fehler und Störungen während der Umsetzung
 
-- Ein **Fehler, den die Anforderung verursacht oder verfehlt**, wird ein **neues Unter-Ticket** des Haupteintrags: Typ Fehler, Definition of Ready mit Schritten zum Reproduzieren und erwartetem Verhalten, Herkunft der Haupteintrag. Anlegen und anhängen wie unter „Tickets aus einem Spec“ (Ablauf `v2`, Schritte 1 und 2), mit dem Haupteintrag statt der Karte. Steht der Haupteintrag auf Review, bleibt er dort, bis auch dieses Unter-Ticket geschlossen ist.
+- Ein **Fehler, den die Anforderung verursacht oder verfehlt**, wird ein **neues Unter-Ticket** des Haupteintrags: Typ Fehler, Definition of Ready mit Schritten zum Reproduzieren und erwartetem Verhalten in der erweiterten Form samt Weg (siehe „Erweiterte Definition of Ready“), Herkunft der Haupteintrag. Anlegen und anhängen wie unter „Tickets aus einem Spec“ (Ablauf `v2`, Schritte 1 und 2), mit dem Haupteintrag statt der Karte. Steht der Haupteintrag auf Review, bleibt er dort, bis auch dieses Unter-Ticket geschlossen ist.
 - Ein **alter Fehler**, der nur jetzt auffällt, ist eine **neue Anforderung**: `gh issue create` ohne Label, Typ und Assignee. Die Weiche ordnet ihn ein, er hängt nicht unter diesem Haupteintrag.
 - Eine **Störung** ist immer ein **eigener Haupteintrag**, damit ihre Reaktionsfrist oben sichtbar ist. Auch sie kommt als neue Anforderung und wird an der Weiche als Störung bestätigt, nie als Unter-Ticket.
 - Ist unklar, welcher Fall vorliegt, fragst du die Person.

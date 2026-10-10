@@ -16,6 +16,7 @@ Dieses Repo enthält Code eines Produkts. Die Tickets dazu liegen nicht hier, so
   - Fehler: Schritte zum Reproduzieren und erwartetes Verhalten.
   - Feature: Ziel in einem Satz und Akzeptanzkriterien.
   - Aufgabe: Ergebnis in einem Satz.
+  - Mit Ablauf `v2` dazu die erweiterte Form: **Testfälle**, **Seams und Schnittstellen**, **Nicht-Ziele**, **Prüfung von Ende zu Ende**, **Betroffene Repos**, **Vorbild im Code** und **Weg** (`Agent` oder `lokal`). Die Testfälle schreibst du als Tests, die Seams sind ihr Ort, die Nicht-Ziele baust du nicht, und das Vorbild zeigt, wie es hier gemacht wird.
 - **Zustände** im Board, Feld Status: Eingang, Backlog, Bereit, In Arbeit, Review, Erledigt, Verworfen.
 
 ## Board
@@ -41,7 +42,7 @@ Gilt für jede Session, die an einem Ticket arbeitet, etwa `/implement <URL des 
 1. **Prüfen**: Lies das Ticket samt Zustand.
    - Ohne Issue Type ist es kein Ticket. Sag das und ende.
    - Ist es geschlossen, Erledigt oder Verworfen, sag das und ende.
-   - Steht es nicht auf Bereit, In Arbeit oder Review, oder fehlt die Definition of Ready, sag das. An einem Unter-Ticket (siehe „Board“) gilt der Zustand seines Haupteintrags. Bereit setzt nur ein Mensch. Du machst nur weiter, wenn die Person es ausdrücklich will.
+   - Steht es nicht auf Bereit, In Arbeit oder Review, oder fehlt die Definition of Ready oder ein Teil der erweiterten Form, sag das. An einem Unter-Ticket (siehe „Board“) gilt der Zustand seines Haupteintrags. Bereit setzt nur ein Mensch. Du machst nur weiter, wenn die Person es ausdrücklich will.
    - Ist eine andere Person Assignee, nenne sie und frag, bevor du weitermachst.
 2. **Übernehmen**, als erste Schreibaktion:
    - Ohne Assignee: `gh issue edit <n> -R <anforderungs-repo> --add-assignee @me`.
@@ -50,7 +51,7 @@ Gilt für jede Session, die an einem Ticket arbeitet, etwa `/implement <URL des 
 4. **Umsetzen** nach dem Skill, auf diesem Branch. Die Definition of Ready ist die Vorgabe.
    - Was sie nicht deckt oder was ihr widerspricht, fragst du nach.
    - Neue Arbeit, die sich zeigt, ist eine neue Anforderung. Du nennst sie. Will die Person sie anlegen, dann mit einer Zeile Titel, ohne Label, Typ und Assignee: `gh issue create -R <anforderungs-repo> --title "..." --body "..."`. Die Weiche in `<anforderungs-repo>` ordnet sie ein.
-   - An einem Unter-Ticket gilt für Fehler: Verursacht oder verfehlt die Anforderung den Fehler, wird er ein neues Unter-Ticket ihres Haupteintrags, damit er vor Erledigt behoben wird. Du schlägst es vor. Will die Person es, legst du es mit Typ Fehler und Definition of Ready (Schritte zum Reproduzieren, erwartetes Verhalten) an und hängst es an: `gh api repos/<anforderungs-repo>/issues -f title="..." -F body=@<datei> -f type=Fehler --jq '"\(.number) \(.id)"'`, dann `gh api --method POST repos/<anforderungs-repo>/issues/<haupteintrag>/sub_issues -F sub_issue_id=<id>` mit der zweiten Zahl, nicht der Nummer. Ein alter Fehler, der nur jetzt auffällt, ist eine neue Anforderung wie oben. Eine Störung ist immer eine neue Anforderung, ein eigener Haupteintrag, nie ein Unter-Ticket.
+   - An einem Unter-Ticket gilt für Fehler: Verursacht oder verfehlt die Anforderung den Fehler, wird er ein neues Unter-Ticket ihres Haupteintrags, damit er vor Erledigt behoben wird. Du schlägst es vor. Will die Person es, legst du es mit Typ Fehler und Definition of Ready (Schritte zum Reproduzieren, erwartetes Verhalten, dazu die erweiterte Form samt Weg wie unter „Vorgabe“) an und hängst es an: `gh api repos/<anforderungs-repo>/issues -f title="..." -F body=@<datei> -f type=Fehler --jq '"\(.number) \(.id)"'`, dann `gh api --method POST repos/<anforderungs-repo>/issues/<haupteintrag>/sub_issues -F sub_issue_id=<id>` mit der zweiten Zahl, nicht der Nummer. Ein alter Fehler, der nur jetzt auffällt, ist eine neue Anforderung wie oben. Eine Störung ist immer eine neue Anforderung, ein eigener Haupteintrag, nie ein Unter-Ticket.
    - Bei `/code-review` ist der Fixpunkt der Standard-Branch und die Vorgabe das Ticket.
 5. **Pull Request**, wenn die Person ihn will: den Branch pushen, dann `gh pr create --base <standard-branch> --title "..." --body-file <datei>`. Der Text endet mit der Zeile `Closes <anforderungs-repo>#<n>`. Der Merge schließt dann das Ticket.
    - Mehrere Pull Requests zu einem Ticket: Die früheren tragen `Refs <anforderungs-repo>#<n>`, nur der letzte `Closes`. Ist offen, ob es der letzte ist, fragst du.
