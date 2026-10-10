@@ -1,4 +1,4 @@
-# Wächter gegen feste Namen von ECC (Ticket #411): Die Skills sind die Fassung für Portolan ohne Bezug zu
+# Wächter gegen feste Namen von ECC Digital (Ticket #411): Die Skills sind die Fassung für Portolan ohne Bezug zu
 # einer Firma. Läuft an jedem Pull Request und an jedem Push auf main und v2/**, ohne Secrets und ohne Pakete.
 # Führt dazu die übrigen Tests unter scripts/ aus, etwa die der Vorlagen (#416).
 # Portolan-eigen, siehe PORTOLAN.md. Matts Workflows in diesem Ordner bleiben abgeschaltet.
