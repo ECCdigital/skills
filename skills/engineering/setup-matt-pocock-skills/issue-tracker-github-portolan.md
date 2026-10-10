@@ -37,11 +37,11 @@ Die Auswertung schreibt in jedes Issue mit einem nächsten Schritt einen Block a
 
 | Label | Bedeutung | Setzt | Entfernt |
 |---|---|---|---|
-| `wayfinder:map` | Karte | Weiche-Bestätigung | `/to-tickets` bei der Übergabe (nur Ablauf `v2`) |
-| `weg:spec` | Spec-Weg: Anforderung ohne Karte, deren Spec an ihr selbst entsteht; kein `wayfinder:`-Präfix, weil das eine Klärung kennzeichnet | Weiche-Bestätigung (nur Ablauf `v2`) | `/to-tickets` bei der Übergabe |
+| `wayfinder:map` | Karte | Weiche-Bestätigung, `/wayfinder` beim Umstieg (nur Ablauf `v2`) | `/to-tickets` bei der Übergabe (nur Ablauf `v2`) |
+| `weg:spec` | Spec-Weg: Anforderung ohne Karte, deren Spec an ihr selbst entsteht; kein `wayfinder:`-Präfix, weil das eine Klärung kennzeichnet | Weiche-Bestätigung, `/to-spec` beim Umstieg (nur Ablauf `v2`) | `/to-tickets` bei der Übergabe, `/wayfinder` beim Umstieg |
 | `wayfinder:research`, `wayfinder:prototype`, `wayfinder:grilling`, `wayfinder:task` | Klärung mit ihrer Art; `task` ist die Vorarbeit | `/wayfinder` | – |
 | `weiche:vorschlag` | Weiche vorgeschlagen, wartet auf Bestätigung | Weiche-Vorschlag | Weiche-Bestätigung |
-| `agent:runde` | An diesem Issue laufen Grilling-Runden; bewusst anders als die Art `wayfinder:grilling` | Weiche-Bestätigung (nur Ablauf `v1`), Auswertung, Mensch | Grilling-Runde beim Ergebnis, lokale Session beim Umschalten auf live |
+| `agent:runde` | An diesem Issue laufen Grilling-Runden; bewusst anders als die Art `wayfinder:grilling` | Weiche-Bestätigung (nur Ablauf `v1`), Auswertung, Mensch | Grilling-Runde beim Ergebnis, lokale Session beim Umschalten auf live und beim Umstieg |
 | `agent:laeuft` | Der Agent hat eine Klärung übernommen (Claim) | Auswertung beim Start | Research-Lauf beim Abschluss; ein Mensch für einen Neustart |
 | `freigabe:wartet` | Karte oder Spec-Weg wartet auf Freigabe | treibende Person nach dem Spec | Freigabe-Vermerk |
 | `stoerungsverdacht` | Weiche vermutet eine Störung | Weiche-Vorschlag | – |
@@ -107,7 +107,7 @@ Triage-Labels wie `needs-triage` oder `ready-for-agent` gibt es hier nicht. Die 
 
 ## When a skill says "fetch the relevant ticket"
 
-Run `gh issue view <number> --comments`. Ist es eine Karte oder ein Spec-Weg und läuft `/to-spec` oder `/to-tickets`, gilt zuerst „Spec und Tickets aus einer Karte“, am Spec-Weg dazu „Spec-Weg“.
+Run `gh issue view <number> --comments`. Ist es eine Karte oder ein Spec-Weg und läuft `/to-spec` oder `/to-tickets`, gilt zuerst „Spec und Tickets aus einer Karte“, am Spec-Weg dazu „Spec-Weg“. Ist es ein Ticket und läuft `/to-spec` oder `/wayfinder`, oder ein Spec-Weg und läuft `/wayfinder`, gilt zuerst „Umstieg“.
 
 ## Wayfinding operations
 
@@ -116,6 +116,7 @@ Used by `/wayfinder`. In seiner Sprache ist die map die Karte, ein ticket eine K
 - **Map aus einer Anforderung** (der Normalfall): Die Weiche hat das Issue schon zur Karte gemacht, mit `wayfinder:map`, der treibenden Person als Assignee und im Board. Du legst kein neues Issue an.
   - Der ursprüngliche Text der Anforderung bleibt unverändert als Abschnitt `## Anforderung` am Anfang des Karten-Texts. Davor steht höchstens der Block der Auswertung. Darunter folgen die Abschnitte der Karte aus `/wayfinder`: `## Destination`, `## Notes`, `## Decisions so far`, `## Not yet specified`, `## Out of scope`.
   - Hole den Text mit `gh issue view <karte> --json body --jq .body` und schreibe ihn mit `gh issue edit <karte> --body-file <datei>`. Der Block der Auswertung bleibt dabei Zeichen für Zeichen stehen.
+- **Map aus einem Ticket oder Spec-Weg**: erst „Umstieg“, dann wie aus einer Anforderung. Der Text des Tickets oder Spec-Wegs ist die Anforderung.
 - **Map ohne Anforderung** (Ausnahme): `gh issue create --label wayfinder:map --assignee @me`, dann ins Board mit Zustand Backlog, Produkt und Projekt.
 - **Child ticket (Klärung)**: `gh issue create --title "..." --label wayfinder:<art> --parent <karte> --body-file <datei>`. Der Text beginnt mit `## Question`. Später setzt die Auswertung ihren Block davor.
   - Höchstens eine eingetragene Person, mit `--assignee <login>`. Eine Research-Klärung ohne Assignee übernimmt der Agent.
@@ -184,13 +185,50 @@ Gilt für jede lokale Session, die einen Menschen grillt: `/wayfinder` an einer 
 
 ## Spec-Weg
 
-Gibt `zustaendig.sh ablauf` `v2` aus, hat die Weiche fünf Ausgänge: Ticket, Spec, Karte, Störung und Verworfen. Ticket und Spec gibt es mit oder ohne Grilling. Größe trennt Ticket und Spec, Nebel trennt Spec und Karte. Eine mittelgroße, klare Anforderung bestätigt die Weiche als **Spec**: ohne Karte, mit Label `weg:spec`, der treibenden Hauptentwickler:in als Assignee und Zustand In Klärung. In Klärung bleibt sie, bis `/to-tickets` übergibt.
+Gibt `zustaendig.sh ablauf` `v2` aus, hat die Weiche fünf Ausgänge: Ticket, Spec, Karte, Störung und Verworfen. Ticket und Spec gibt es mit oder ohne Grilling. Größe trennt Ticket und Spec, Nebel trennt Spec und Karte. Eine mittelgroße, klare Anforderung bestätigt die Weiche als **Spec**: ohne Karte, mit Label `weg:spec`, der treibenden Hauptentwickler:in als Assignee und Zustand In Klärung. In Klärung bleibt sie, bis `/to-tickets` übergibt. Ein Ticket wird mit `/to-spec` zum Spec-Weg, siehe „Umstieg“.
 
 - **Spec schreiben**: Die treibende Person zieht lokal `/to-spec #<n>`. Sie grillt sich darin selbst, nach „Grilling-Session lokal“, und schreibt den Spec in derselben Session.
 - **Spec mit Grilling**: Nennt die Bestätigung eine andere gefragte Person, wird erst sie gegrillt, live mit `/grilling #<n>` oder asynchron in Grilling-Runden. Steht danach ein Kommentar `## Antwort`, schreibt die treibende Person den Spec daraus. Fehlt die Antwort noch, wenn `/to-spec` läuft, sagst du das, nennst die gefragte Person und fragst, ob die treibende Person trotzdem schreiben will. Ist die gefragte zugleich die treibende Person, grillt sie sich in der Session von `/to-spec`.
 - **Spec, Freigabe und Tickets** vermerkst du wie an einer Karte unter „Spec und Tickets aus einer Karte“. Statt der Karte steht dort die Anforderung selbst: Der Spec ist ein Kommentar `## Spec` an ihr, die Zeilen `- Spec:`, `- Freigabe am …`, `- Keine Freigabe nötig: …` und `- Tickets:` stehen in ihrem Text unter `## Notes`. Fehlt der Abschnitt, legst du ihn am Ende des Texts an. Der Text der Anforderung darüber bleibt Zeichen für Zeichen, auch der Block der Auswertung.
 - Der **Freigabe-Vermerk** arbeitet auch am Spec-Weg, sobald er `freigabe:wartet` trägt.
 - **Übergabe**: `/to-tickets` übergibt den Spec-Weg nach „Übergabe mit Ablauf v2“, mit der Anforderung statt der Karte und `weg:spec` statt `wayfinder:map`. Auch hier kommt erst der Typ, dann das Label weg, sonst stünde das Issue ohne beides da und die Weiche startete.
+
+## Umstieg
+
+Nur mit Ablauf `v2` (`zustaendig.sh ablauf`). Zeigt sich die Größe oder der Nebel anders als an der Weiche gedacht, steigt dasselbe Issue um. Es entsteht keine Kopie und kein neues Issue, und es gibt keinen eigenen Agent-Lauf: Der Umstieg passiert lokal im nächsten Skill.
+
+- `/to-spec #<n>` an einem Ticket: **Ticket → Spec-Weg**. Danach schreibst du den Spec in derselben Session nach „Spec-Weg“.
+- `/wayfinder #<n>` an einem Ticket oder Spec-Weg: **Ticket → Karte** oder **Spec-Weg → Karte**. Danach kartierst du in derselben Session nach „Map aus einer Anforderung“.
+
+Andere Richtungen gibt es nicht. Eine Karte oder ein Spec-Weg wird erst mit `/to-tickets` wieder ein Ticket, bei der Übergabe.
+
+**Kein Umstieg**, du sagst den Grund und endest:
+
+- Das Ticket hat Unter-Tickets oder ist selbst ein Unter-Ticket (`gh api repos/{owner}/{repo}/issues/<n>/parent`, `…/sub_issues`).
+- Das Issue trägt `freigabe:wartet`. Jeder Kommentar daran startete den Freigabe-Vermerk, und die Anfrage beruht auf dem alten Weg.
+- Der Spec-Weg hat schon eine Zeile `- Spec:` unter `## Notes`. Dann folgt `/to-tickets`.
+- Das Issue trägt noch `weiche:vorschlag` oder weder Label noch Typ. Dann entscheidet die Weiche.
+
+**Fragen**: Bevor du etwas änderst, fragst du die Person, ob das Issue umsteigen soll, und nach dem Grund in einem Satz. Steht das Ticket schon In Arbeit oder Review (`board.sh zeige <n>`), sagst du das in der Frage. Bist du keine Hauptentwickler:in, fragst du dazu, wer treibt. Sagt sie nein, änderst du nichts und endest.
+
+**Umsetzen**, in dieser Reihenfolge. Das Issue ist dabei nie zugleich ohne Label und ohne Typ, sonst wäre es eine Anforderung im Eingang, und ein Kommentar startete die Weiche.
+
+1. Das neue Label zuerst: `gh issue edit <n> --add-label weg:spec` zum Spec-Weg, `--add-label wayfinder:map` zur Karte.
+2. Dann das Alte weg. Vom Ticket der Typ: `gh api --method PATCH repos/{owner}/{repo}/issues/<n> -F type=null`. Vom Spec-Weg das Label: `gh issue edit <n> --remove-label weg:spec`.
+3. Trägt das Issue `agent:runde`, entfernst du es: `gh issue edit <n> --remove-label agent:runde`. Das Grilling des Tickets endet mit dem Umstieg. Seine Antworten im Thread liest du und setzt dort an, nach „Grilling-Session lokal“.
+4. Treibende Person: Treibend ist genau der Assignee, eine Hauptentwickler:in, in der Regel du. Trag sie ein (`gh issue edit <n> --add-assignee @me`) und nimm andere Assignees heraus (`--remove-assignee <login>`). Bist du keine Hauptentwickler:in (`zustaendig.sh rolle Hauptentwickler:in`), trägst du die Person ein, die unter „Fragen“ genannt wurde.
+5. Zustand: `board.sh setze <n> 'Zustand=In Klärung'`. Produkt und Projekt bleiben.
+6. Zuletzt genau ein Kommentar. Seine erste Zeile beginnt mit `Umstieg:`, daran erkennt die Auswertung den Umstieg:
+
+   ```
+   Umstieg: <Ticket|Spec-Weg> → <Spec-Weg|Karte>, weil <Grund in einem Satz>.
+
+   Treibt: @<login>. <login> schreibt den Spec mit `/to-spec #<n>`, hier an der Anforderung.
+   ```
+
+   Zur Karte heißt der zweite Satz „<login> kartiert mit `/wayfinder #<n>`.“
+
+Die Zeilen der Weiche bleiben im Thread stehen, du änderst sie nicht. Nach dem Umstieg gilt die gefragte Person der Bestätigung nicht mehr: Am Spec-Weg grillt sich die treibende Person in `/to-spec`, an der Karte fragen die Klärungen. Die Auswertung setzt den Zustand In Klärung nach, falls Schritt 5 fehlt, und nennt im Kasten den nächsten Schritt des neuen Wegs.
 
 ## Spec und Tickets aus einer Karte
 
