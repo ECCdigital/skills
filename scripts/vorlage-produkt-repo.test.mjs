@@ -41,6 +41,15 @@ describe("Vorlage „GitHub Portolan, Produkt-Repo“ und der Schalter ablauf", 
     assert.match(zustaende, new RegExp(`Ablauf \`v1\`[^\\n]*${sieben}`), "Zustände mit v1 fehlen");
   });
 
+  // Code-Review #384, Befund 4: Mit v2 schließt kein Merge ein Ticket, Erledigt setzt und schließt nur ein Mensch.
+  test("mit v2 immer Refs, auch am Ticket ohne Haupteintrag; Review dort nach dem Pull Request", () => {
+    const pr = bloecke(VORLAGE).find((b) => b.includes("Mit Ablauf `v2` endet der Text immer mit `Refs"));
+    assert.ok(pr, "Regel „mit v2 immer Refs“ fehlt");
+    assert.match(pr, /auch an einem Ticket ohne Haupteintrag/);
+    const review = bloecke(VORLAGE).find((b) => b.startsWith("6. **Review**"));
+    assert.match(review, /Mit Ablauf `v2` setzt du am Ticket ohne Haupteintrag „Review“, sobald sein Pull Request steht/);
+  });
+
   test("jede Regel zum Unter-Ticket hängt an Ablauf v2", () => {
     const ohne = bloecke(VORLAGE).filter((b) => /Unter-Ticket|\/parent/.test(b) && !b.includes("Ablauf `v2`"));
     assert.deepEqual(ohne, [], `Regeln zum Unter-Ticket ohne Ablauf \`v2\`:\n${ohne.join("\n---\n")}`);
