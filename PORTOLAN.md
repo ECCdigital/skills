@@ -20,9 +20,10 @@ Die zweite ist `skills/engineering/implement/`: das Review als frischer Subagent
 Dazu kommt, was der Fork selbst braucht:
 
 - `.claude-plugin/plugin.json`: nur `version`, siehe Tags.
-- `.claude-plugin/marketplace.json`: nur `name` (`ecc`) und `description`. Der Name ist das Tag-Schema (`ecc-<n>`) und der Name des Marketplace bei der Installation (`mattpocock-skills@ecc`). Er bleibt, bis alle Rechner umgestellt sind.
+- `.claude-plugin/marketplace.json`: nur `name` und `description`. Der Name ist der Name des Marketplace bei der Installation (`mattpocock-skills@ecc`) und steckt im Tag-Schema (`ecc-<n>`). Beide bleiben bewusst (#411): Ein neuer Name hieße Neuinstallation auf jedem Rechner. Der Wächter erlaubt sie als enge Ausnahme, nur in diesen Schreibweisen.
 - `PORTOLAN.md`: diese Datei.
-- `scripts/feste-namen.mjs` und `scripts/feste-namen.test.mjs`: der Wächter gegen feste Namen von ECC, wie in portolan. `.github/workflows/feste-namen.yml` lässt ihn an jedem Pull Request und an jedem Push auf `main` und `v2/**` laufen, ohne Secrets.
+- `scripts/feste-namen.mjs` und `scripts/feste-namen.test.mjs`: der Wächter gegen feste Namen von ECC Digital, wie in portolan. `.github/workflows/feste-namen.yml` lässt ihn an jedem Pull Request und an jedem Push auf `main` und `v2/**` laufen, ohne Secrets.
+- `scripts/vorlage-produkt-repo.test.mjs`: prüft, dass die Vorlage „GitHub Portolan, Produkt-Repo“ dem Schalter `ablauf` folgt, Unter-Tickets nur mit `v2` (#416). `feste-namen.yml` führt alle Tests unter `scripts/` aus: `node --test scripts/*.test.mjs`.
 - Matts Workflows `release.yml`, `needs-info.yml` und `triage-label.yml` sind im Fork abgeschaltet (`gh workflow disable <datei>`). Die Dateien bleiben unverändert. Issues sind im Fork aus.
 
 Alles andere ist Matts Stand. Prüfen: `git diff --stat upstream main`.
@@ -32,8 +33,8 @@ Den Sync hat der Fork nicht. Er ist ein Workflow des Werkzeugs (`skills-sync.yml
 ## Stände und Tags
 
 - `main` ist die freigegebene Fassung. Nach jedem Merge nach `main` folgt ein Tag.
-- Jeder Stand ist ein Tag `ecc-<n>`, fortlaufend ab `ecc-1`. Das Schema kollidiert weder mit Matts Tags (`v1.2.3`, `mattpocock-skills@1.0.0`) noch mit der Konvention `<plugin>--v<version>` von Claude Code.
-- Die Plugin-Version in `.claude-plugin/plugin.json` ist `<Matts Version>-ecc.<n>`, etwa `1.2.3-ecc.1`. Claude Code aktualisiert eine lokale Installation nur, wenn sich diese Version ändert.
+- Jeder Stand ist ein Tag `ecc-<n>`, `<n>` fortlaufend ab 1. Das Schema kollidiert weder mit Matts Tags (`v1.2.3`, `mattpocock-skills@1.0.0`) noch mit der Konvention `<plugin>--v<version>` von Claude Code.
+- Die Plugin-Version in `.claude-plugin/plugin.json` ist `<Matts Version>-ecc.<n>`. Claude Code aktualisiert eine lokale Installation nur, wenn sich diese Version ändert.
 
 Einen neuen Stand freigeben:
 
@@ -62,7 +63,7 @@ Warum nicht im Fork: Der Fork ist öffentlich. Hätte er die Secrets einer App, 
 - Er erzeugt ein Token der App des Arbeitsbereichs aus den Secrets `AGENT_APP_ID` und `AGENT_PRIVATE_KEY` des Probe-Repos. Das Token gilt nur für die Ziele und nur für Contents und Pull Requests. Die App hat kein Recht `workflows`, deshalb ändert der Pull Request nur `.claude/skills`.
 - Je Ziel-Repo legt er einen Branch `skills/ecc-<n>` an und ersetzt `.claude/skills` ganz durch die ausgewählten Skills des Tags. `.claude/skills/README.md` nennt Tag, Commit, Plugin-Version und Skills. Gibt es den Branch schon, setzt er einen Commit darauf.
 - Der Pull Request vermerkt den Tag, verlinkt die Änderungen seit dem letzten Stand und sagt, ob das Setup neu laufen muss.
-- Noch offene Sync-Pull-Requests eines älteren Tags schließt er mit Verweis auf den neuen: nur Branches `skills/ecc-<m>` des Bots mit `<m>` kleiner als `<n>`. Solange man Tags in ihrer Reihenfolge synchronisiert, ist je Ziel also höchstens einer offen.
+- Noch offene Sync-Pull-Requests eines älteren Tags schließt er mit Verweis auf den neuen: nur Branches `skills/ecc-<n>` des Bots mit kleinerem `<n>` als der neue Tag. Solange man Tags in ihrer Reihenfolge synchronisiert, ist je Ziel also höchstens einer offen.
 
 ### Auswahl für `.claude/skills`
 
@@ -104,7 +105,7 @@ gh pr create -R ECCdigital/skills --base main --head upstream --title "Matts Sta
 Hebt Matt seine Version, gibt es immer einen Konflikt in `plugin.json`. Den nicht im Pull Request von `upstream` lösen: GitHub würde dabei `main` in `upstream` mergen, und `upstream` wäre nicht mehr Matts `main`. Stattdessen `upstream` wie oben pushen, dann lokal:
 
 ```bash
-git switch -c ecc/matt-<Matts Version> origin/main
+git switch -c matt/<Matts Version> origin/main
 git merge --no-ff origin/upstream
 ```
 
@@ -143,5 +144,5 @@ claude plugin install mattpocock-skills@ecc
 
 - Die Kopien von skills.sh entfernen: die Ordner von Matts Skills in `~/.agents/skills`, ihre Symlinks in `~/.claude/skills` und ihre Einträge in `~/.agents/.skill-lock.json`. Skills aus anderen Quellen bleiben.
 - Prüfen: `claude plugin list` zeigt `mattpocock-skills@ecc` und keinen anderen Eintrag von Matts Skills.
-- Aktualisieren: `claude plugin marketplace update ecc`, dann `claude plugin update mattpocock-skills@ecc`, dann Claude Code neu starten. Automatisch geht das nur, wenn unter `/plugin`, Marketplaces, für `ecc` „Enable auto-update“ an ist.
+- Aktualisieren: `claude plugin marketplace update ecc`, dann `claude plugin update mattpocock-skills@ecc`, dann Claude Code neu starten. Automatisch geht das nur, wenn unter `/plugin`, Marketplaces, für diesen Marketplace „Enable auto-update“ an ist.
 - Im Anforderungs-Repo und im Probe-Repo lädt Claude Code zusätzlich die Skills aus `.claude/skills`. Nach dem Merge des Syncs ist das derselbe Stand wie im Plugin, solange beide auf demselben Tag stehen.

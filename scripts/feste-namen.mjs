@@ -1,7 +1,8 @@
 // Wächter gegen feste Namen von ECC (#411): Portolan läuft für jede Firma nur mit ihrer Einstellungs-Datei. Darum steht
 // in Code, Prompts, Workflows, Skills, Doku und Testdaten kein Name, der ECC gehört: die Org, die Domain, MOCO, Biletado
-// und andere Produkte, Logins, der alte Bot-Login und die Nummern der Boards. Testdaten nehmen die erfundene
-// Musterfirma. Wer einen Namen braucht, liest ihn aus der Einstellungs-Datei (zustaendig.sh arbeitsbereich).
+// und andere Produkte, Logins und die Vornamen dahinter, der alte Bot-Login, ECC als Wort und die Nummern der Boards.
+// Testdaten nehmen die erfundene Musterfirma. Wer einen Namen braucht, liest ihn aus der Einstellungs-Datei
+// (zustaendig.sh arbeitsbereich). Nur „ECC Digital“ als Herausgeber bleibt stehen.
 //
 // Gleich in portolan (test/feste-namen.mjs dort), mit eigenen Ausnahmen. Nur diese Datei und ihr Test nennen die Namen,
 // als Muster. Ändert sich eine Datei, ändert sich die andere mit.
@@ -19,12 +20,16 @@ export const NAMEN = [
   { was: "Produkt von ECC", muster: /biletado|smart-city-booking|smart city|\bonework\b|\bIBuS\b|\bSHIBB\b/gi },
   { was: "Login bei ECC", muster: /Marvin-Anders|NickiECC|lennardscheffler|frederikbernard|\becc-probe-[a-z]+/gi },
   { was: "alter Bot-Login oder App von ECC", muster: /ecc-agent|\bECC[ _]AGENT/gi },
+  { was: "Vorname eines Logins bei ECC", muster: /\b(?:Marvin|Nicki|Lennard|Frederik)\b/gi },
   // Nummern 11 und 12 der Boards von ECC, als Board-Nummer geschrieben: „Board 11“, "board": 12, BOARD=11,
-  // BOARD: "12", Board Nr. 11, projects/12, gh project item-add 11, nr=12.
+  // BOARD: "12", Board Nr. 11, projects/12, gh project item-add 11, nr=12, projectV2(number: 12), --number 11.
   {
     was: "Nummer eines Boards von ECC",
-    muster: /\bboard\b["']?\s*[:=]?\s*["']?(?:nr\.?\s*)?1[12]\b|projects\/1[12]\b|\bproject\s+(?:item-add|item-edit|item-list|field-list|view)\s+1[12]\b|\bnr=1[12]\b/gi,
+    muster:
+      /\bboard\b["']?\s*[:=]?\s*["']?(?:nr\.?\s*)?1[12]\b|projects\/1[12]\b|\bproject\s+(?:item-add|item-edit|item-list|field-list|view)\s+1[12]\b|\bnr=1[12]\b|\bprojectV2\s*\(\s*number\s*:\s*1[12]\b|--number[\s=]+1[12]\b/gi,
   },
+  // Zuletzt: ECC als Wort, auch in Namen wie ecc-sync oder ecc-10. Was ein Muster oben schon fasst, zählt dort.
+  { was: "ECC als Name", muster: /\bECC\b(?!\s+Digital\b)/gi },
 ];
 
 /**
@@ -35,15 +40,25 @@ export function ausnahme(pfad, liste) {
   return liste.find((a) => (a.pfad.endsWith("/") ? pfad.startsWith(a.pfad) : pfad === a.pfad));
 }
 
-/** Funde in einem Text: [{ zeile, was, text }]. erlaubt: Texte, die als Treffer nicht zählen (genau so geschrieben). */
+/**
+ * Funde in einem Text: [{ zeile, was, text }]. erlaubt: Texte, die als Treffer nicht zählen (genau so geschrieben).
+ * Eine Stelle zählt einmal: Fasst ein späteres Muster, was ein früheres schon gefunden hat, zählt nur das frühere.
+ */
 export function funde(text, { erlaubt = [] } = {}) {
   const liste = [];
   const zeilen = text.split("\n");
   zeilen.forEach((inhalt, i) => {
     let rest = inhalt;
     for (const e of erlaubt) rest = rest.split(e).join(" ".repeat(e.length));
+    const belegt = [];
     for (const { was, muster } of NAMEN) {
-      for (const m of rest.matchAll(muster)) liste.push({ zeile: i + 1, was, text: m[0] });
+      for (const m of rest.matchAll(muster)) {
+        const von = m.index;
+        const bis = von + m[0].length;
+        if (belegt.some(([a, b]) => von < b && a < bis)) continue;
+        belegt.push([von, bis]);
+        liste.push({ zeile: i + 1, was, text: m[0] });
+      }
     }
   });
   return liste;
