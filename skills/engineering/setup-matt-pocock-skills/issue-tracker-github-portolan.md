@@ -79,7 +79,7 @@ Triage-Labels wie `needs-triage` oder `ready-for-agent` gibt es hier nicht. Die 
 
 - Tickets und Karten stehen im Org-Board, das die Repo-Variable `BOARD` nennt (`gh variable get BOARD`, dieselbe Nummer wie `board` in der Einstellungs-Datei). Im Text heißt die Nummer `<board>`. Klärungen kommen nie ins Board, mit Ablauf `v2` auch Unter-Tickets nicht: Im Board stehen nur Haupteinträge. Das Board nimmt nichts von selbst auf.
 - Der Zustand steht im eingebauten Feld Status. Dazu kommen die Felder Produkt und Projekt. Ihre Auswahlwerte liest du aus dem Board (`gh project field-list <board> --owner <org>`). Eine zweite Liste gibt es nicht.
-- Ab Bereit: Bereit und Erledigt setzt ein Mensch. In Arbeit und Review setzt die lokale Session, die im Repo des Produkts am Ticket arbeitet, nach der Vorlage „GitHub Portolan, Produkt-Repo“. Die eingebauten Workflows des Boards bleiben aus, weil „Item closed“ auch verworfene Einträge auf Erledigt setzen würde.
+- Ab Bereit: Bereit und Erledigt setzt ein Mensch. In Arbeit und Review setzt die lokale Session, die im Repo des Produkts am Ticket arbeitet, nach der Vorlage „GitHub Portolan, Produkt-Repo“. Mit Ablauf `v2` setzt sie an einem Unter-Ticket nur In Arbeit am Haupteintrag, und Review am Haupteintrag setzt die Auswertung (siehe „Umsetzung am Haupteintrag mit Ablauf v2“). Die eingebauten Workflows des Boards bleiben aus, weil „Item closed“ auch verworfene Einträge auf Erledigt setzen würde.
 - Ins Board: `gh project item-add <board> --owner <org> --url <issue-url>`, dann die Felder mit `gh project item-edit`.
 - Einfacher geht es mit `board.sh` (siehe „Skripte“). Es prüft die Werte, bevor es schreibt, und nimmt auch einen eindeutigen Teil eines Namens, etwa die Kennung eines Projekts.
   - `board.sh setze <n> Zustand=Backlog Produkt=<Produkt> Projekt=<Projekt>` nimmt das Issue ins Board auf und setzt die Felder. `board.sh zeige <n>` zeigt sie, `board.sh felder` die Auswahlwerte.
@@ -371,3 +371,19 @@ Die Karte schließt nicht. Sie wird selbst zum Übergeordneten Ticket, dem Haupt
 3. `board.sh setze <karte> Zustand=Backlog`. Produkt und Projekt bleiben, die Unter-Tickets erben sie.
 
 Kein Kommentar „Karte übergeben“, kein Erledigt, nicht schließen, der Assignee bleibt. Der Haupteintrag steht dann auf Backlog. Bereit setzt eine Hauptentwickler:in am Haupteintrag, nicht an den Unter-Tickets. Eine eigene Definition of Ready braucht er nicht, die tragen seine Unter-Tickets in der erweiterten Form. Nennt der Kasten Lücken, schließt sie, wer Bereit setzt, vorher. Scheitert ein Schritt, nennst du ihn. Ein späterer Aufruf von `/to-tickets` macht ab dort weiter.
+
+## Umsetzung am Haupteintrag mit Ablauf v2
+
+Gilt, wenn `zustaendig.sh ablauf` `v2` ausgibt. Mit `v1` hat jedes Ticket seinen eigenen Zustand.
+
+- **Bereit** setzt eine Hauptentwickler:in am Haupteintrag. Das gilt für alle seine Unter-Tickets. Ein Unter-Ticket hat kein eigenes Bereit und keinen Zustand.
+- **Frei** ist ein Unter-Ticket, das offen ist und keinen offenen Blocker hat. Der Kasten des Haupteintrags nennt das nächste freie ohne eingetragene Person, in der Folge der Sub-Issues, und jede eingetragene Person an ihrem Unter-Ticket. Wer anfängt, trägt sich an einem freien Unter-Ticket ein und arbeitet im Repo des Produkts mit `/implement`. So arbeiten mehrere Personen parallel.
+- **Review**: Sobald das letzte Unter-Ticket geschlossen ist, setzt die Auswertung den Haupteintrag auf Review. Dann prüft eine Hauptentwickler:in außer der treibenden das Ganze gegen Spec und Akzeptanzkriterien. Eine Lücke wird ein neues Unter-Ticket.
+- **Erledigt** setzt und schließt nur ein Mensch: Passt alles, schließt die prüfende Person den Haupteintrag (`gh issue close <n> --reason completed`) und setzt `board.sh setze <n> Zustand=Erledigt`. Eine Session schließt einen Haupteintrag nie von sich aus, die Auswertung auch nicht.
+
+### Fehler und Störungen während der Umsetzung
+
+- Ein **Fehler, den die Anforderung verursacht oder verfehlt**, wird ein **neues Unter-Ticket** des Haupteintrags: Typ Fehler, Definition of Ready mit Schritten zum Reproduzieren und erwartetem Verhalten in der erweiterten Form samt Weg (siehe „Erweiterte Definition of Ready“), Herkunft der Haupteintrag. Anlegen und anhängen wie unter „Tickets aus einem Spec“ (Ablauf `v2`, Schritte 1 und 2), mit dem Haupteintrag statt der Karte. Steht der Haupteintrag auf Review, bleibt er dort, bis auch dieses Unter-Ticket geschlossen ist.
+- Ein **alter Fehler**, der nur jetzt auffällt, ist eine **neue Anforderung**: `gh issue create` ohne Label, Typ und Assignee. Die Weiche ordnet ihn ein, er hängt nicht unter diesem Haupteintrag.
+- Eine **Störung** ist immer ein **eigener Haupteintrag**, damit ihre Reaktionsfrist oben sichtbar ist. Auch sie kommt als neue Anforderung und wird an der Weiche als Störung bestätigt, nie als Unter-Ticket.
+- Ist unklar, welcher Fall vorliegt, fragst du die Person.

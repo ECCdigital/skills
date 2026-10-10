@@ -31,9 +31,9 @@ Einen Zustand setzt du mit `gh project`, jeden Befehl einzeln:
 4. Setzen: `gh project item-edit --id <item-id> --project-id <projekt-id> --field-id <feld-id> --single-select-option-id <zustand-id>`.
 5. Prüfen: `gh issue view <n> -R <anforderungs-repo> --json projectItems`.
 
-Du setzt nur das Feld Status, nur am Ticket, an dem du arbeitest, und nur „In Arbeit“ und „Review“. Bereit, Erledigt, Verworfen und alle anderen Felder setzt ein Mensch. `board.sh` gibt es hier nicht, du nimmst die Befehle oben.
+Du setzt nur das Feld Status, nur am Ticket, an dem du arbeitest, und nur „In Arbeit“ und „Review“. An einem Unter-Ticket ist das sein Haupteintrag, und nur „In Arbeit“. Bereit, Erledigt, Verworfen und alle anderen Felder setzt ein Mensch. `board.sh` gibt es hier nicht, du nimmst die Befehle oben.
 
-**Unter-Ticket**: Ist das Ticket Sub-Issue eines Tickets, gibt `gh api repos/<anforderungs-repo>/issues/<n>/parent --jq '"\(.number) \(.type.name)"'` dessen Nummer und Typ aus, ohne übergeordnetes Issue endet der Aufruf mit 404. Ist der Typ nicht `null`, ist es ein Unter-Ticket (Ablauf `v2`): Es hat keinen Zustand und kommt nie ins Board. Du setzt dort keinen Zustand und nimmst es nicht auf (kein `item-add`). Den Zustand liest du an seinem Haupteintrag, der Nummer aus diesem Aufruf.
+**Unter-Ticket**: Ist das Ticket Sub-Issue eines Tickets, gibt `gh api repos/<anforderungs-repo>/issues/<n>/parent --jq '"\(.number) \(.type.name)"'` dessen Nummer und Typ aus, ohne übergeordnetes Issue endet der Aufruf mit 404. Ist der Typ nicht `null`, ist es ein Unter-Ticket (Ablauf `v2`): Es hat keinen Zustand und kommt nie ins Board. Du setzt dort keinen Zustand und nimmst es nicht auf (kein `item-add`). Den Zustand liest du an seinem Haupteintrag, der Nummer aus diesem Aufruf. Bereit am Haupteintrag gilt für alle seine Unter-Tickets. Review am Haupteintrag setzt die Auswertung, sobald das letzte Unter-Ticket geschlossen ist.
 
 ## Ein Ticket bearbeiten
 
@@ -46,18 +46,19 @@ Gilt für jede Session, die an einem Ticket arbeitet, etwa `/implement <URL des 
    - Ist eine andere Person Assignee, nenne sie und frag, bevor du weitermachst.
 2. **Übernehmen**, als erste Schreibaktion:
    - Ohne Assignee: `gh issue edit <n> -R <anforderungs-repo> --add-assignee @me`.
-   - Zustand „In Arbeit“, wie unter „Board“. Steht er schon dort, bleibt er. An einem Unter-Ticket setzt du keinen.
+   - Zustand „In Arbeit“, wie unter „Board“. Steht er schon dort, bleibt er. An einem Unter-Ticket setzt du dort keinen. Steht sein Haupteintrag auf Bereit, setzt du den Haupteintrag auf „In Arbeit“, wie unter „Board“ mit dessen Nummer. Steht er auf In Arbeit oder Review, bleibt er.
 3. **Branch** `<n>-<stichwort>`: das Stichwort aus dem Titel, klein, mit Bindestrichen, ohne Umlaute, etwa `42-csv-export`. Bist du auf dem Standard-Branch, legst du ihn von dort an: `git switch -c <n>-<stichwort>`. Bist du schon auf einem Branch für dieses Ticket, bleibst du dort. Den Standard-Branch nennt `gh repo view --json defaultBranchRef --jq .defaultBranchRef.name`.
 4. **Umsetzen** nach dem Skill, auf diesem Branch. Die Definition of Ready ist die Vorgabe.
    - Was sie nicht deckt oder was ihr widerspricht, fragst du nach.
    - Neue Arbeit, die sich zeigt, ist eine neue Anforderung. Du nennst sie. Will die Person sie anlegen, dann mit einer Zeile Titel, ohne Label, Typ und Assignee: `gh issue create -R <anforderungs-repo> --title "..." --body "..."`. Die Weiche in `<anforderungs-repo>` ordnet sie ein.
+   - An einem Unter-Ticket gilt für Fehler: Verursacht oder verfehlt die Anforderung den Fehler, wird er ein neues Unter-Ticket ihres Haupteintrags, damit er vor Erledigt behoben wird. Du schlägst es vor. Will die Person es, legst du es mit Typ Fehler und Definition of Ready (Schritte zum Reproduzieren, erwartetes Verhalten, dazu die erweiterte Form samt Weg wie unter „Vorgabe“) an und hängst es an: `gh api repos/<anforderungs-repo>/issues -f title="..." -F body=@<datei> -f type=Fehler --jq '"\(.number) \(.id)"'`, dann `gh api --method POST repos/<anforderungs-repo>/issues/<haupteintrag>/sub_issues -F sub_issue_id=<id>` mit der zweiten Zahl, nicht der Nummer. Ein alter Fehler, der nur jetzt auffällt, ist eine neue Anforderung wie oben. Eine Störung ist immer eine neue Anforderung, ein eigener Haupteintrag, nie ein Unter-Ticket.
    - Bei `/code-review` ist der Fixpunkt der Standard-Branch und die Vorgabe das Ticket.
 5. **Pull Request**, wenn die Person ihn will: den Branch pushen, dann `gh pr create --base <standard-branch> --title "..." --body-file <datei>`. Der Text endet mit der Zeile `Closes <anforderungs-repo>#<n>`. Der Merge schließt dann das Ticket.
    - Mehrere Pull Requests zu einem Ticket: Die früheren tragen `Refs <anforderungs-repo>#<n>`, nur der letzte `Closes`. Ist offen, ob es der letzte ist, fragst du.
    - `Closes` wirkt nur, wenn der Pull Request in den Standard-Branch dieses Repos geht. Geht er in einen anderen Branch, schreibst du `Refs` und sagst der Person, dass ein Mensch das Ticket nach dem Merge schließt.
-6. **Review**: Mit dem Pull Request, der `Closes` trägt, setzt du den Zustand „Review“. Nach einem Pull Request mit `Refs` bleibt „In Arbeit“. An einem Unter-Ticket setzt du keinen.
+6. **Review**: Mit dem Pull Request, der `Closes` trägt, setzt du den Zustand „Review“. Nach einem Pull Request mit `Refs` bleibt „In Arbeit“. An einem Unter-Ticket setzt du keinen, auch nicht am Haupteintrag.
 
-Danach arbeiten Menschen weiter: Eine andere Person prüft den Pull Request, ein Mensch merged, der Merge schließt das Ticket, und ein Mensch setzt Erledigt. Das Ticket schließt du nicht selbst.
+Danach arbeiten Menschen weiter: Eine andere Person prüft den Pull Request, ein Mensch merged, der Merge schließt das Ticket, und ein Mensch setzt Erledigt. Das Ticket schließt du nicht selbst. Ein Unter-Ticket bekommt kein Erledigt. Ist das letzte Unter-Ticket geschlossen, prüft eine Hauptentwickler:in außer der treibenden den Haupteintrag gegen Spec und Akzeptanzkriterien, und ein Mensch schließt ihn.
 
 ## Pull requests as a triage surface
 
