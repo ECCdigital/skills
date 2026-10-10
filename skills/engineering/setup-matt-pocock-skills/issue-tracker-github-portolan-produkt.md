@@ -32,6 +32,8 @@ Einen Zustand setzt du mit `gh project`, jeden Befehl einzeln:
 
 Du setzt nur das Feld Status, nur am Ticket, an dem du arbeitest, und nur „In Arbeit“ und „Review“. Bereit, Erledigt, Verworfen und alle anderen Felder setzt ein Mensch. `board.sh` gibt es hier nicht, du nimmst die Befehle oben.
 
+**Unter-Ticket**: Ist das Ticket Sub-Issue eines Tickets, gibt `gh api repos/<anforderungs-repo>/issues/<n>/parent --jq '"\(.number) \(.type.name)"'` dessen Nummer und Typ aus, ohne übergeordnetes Issue endet der Aufruf mit 404. Ist der Typ nicht `null`, ist es ein Unter-Ticket (Ablauf `v2`): Es hat keinen Zustand und kommt nie ins Board. Du setzt dort keinen Zustand und nimmst es nicht auf (kein `item-add`). Den Zustand liest du an seinem Haupteintrag, der Nummer aus diesem Aufruf.
+
 ## Ein Ticket bearbeiten
 
 Gilt für jede Session, die an einem Ticket arbeitet, etwa `/implement <URL des Tickets>`. Die Schritte ergänzen den Skill.
@@ -39,11 +41,11 @@ Gilt für jede Session, die an einem Ticket arbeitet, etwa `/implement <URL des 
 1. **Prüfen**: Lies das Ticket samt Zustand.
    - Ohne Issue Type ist es kein Ticket. Sag das und ende.
    - Ist es geschlossen, Erledigt oder Verworfen, sag das und ende.
-   - Steht es nicht auf Bereit, In Arbeit oder Review, oder fehlt die Definition of Ready, sag das. Bereit setzt nur ein Mensch. Du machst nur weiter, wenn die Person es ausdrücklich will.
+   - Steht es nicht auf Bereit, In Arbeit oder Review, oder fehlt die Definition of Ready, sag das. An einem Unter-Ticket (siehe „Board“) gilt der Zustand seines Haupteintrags. Bereit setzt nur ein Mensch. Du machst nur weiter, wenn die Person es ausdrücklich will.
    - Ist eine andere Person Assignee, nenne sie und frag, bevor du weitermachst.
 2. **Übernehmen**, als erste Schreibaktion:
    - Ohne Assignee: `gh issue edit <n> -R <anforderungs-repo> --add-assignee @me`.
-   - Zustand „In Arbeit“, wie unter „Board“. Steht er schon dort, bleibt er.
+   - Zustand „In Arbeit“, wie unter „Board“. Steht er schon dort, bleibt er. An einem Unter-Ticket setzt du keinen.
 3. **Branch** `<n>-<stichwort>`: das Stichwort aus dem Titel, klein, mit Bindestrichen, ohne Umlaute, etwa `42-csv-export`. Bist du auf dem Standard-Branch, legst du ihn von dort an: `git switch -c <n>-<stichwort>`. Bist du schon auf einem Branch für dieses Ticket, bleibst du dort. Den Standard-Branch nennt `gh repo view --json defaultBranchRef --jq .defaultBranchRef.name`.
 4. **Umsetzen** nach dem Skill, auf diesem Branch. Die Definition of Ready ist die Vorgabe.
    - Was sie nicht deckt oder was ihr widerspricht, fragst du nach.
@@ -52,7 +54,7 @@ Gilt für jede Session, die an einem Ticket arbeitet, etwa `/implement <URL des 
 5. **Pull Request**, wenn die Person ihn will: den Branch pushen, dann `gh pr create --base <standard-branch> --title "..." --body-file <datei>`. Der Text endet mit der Zeile `Closes <anforderungs-repo>#<n>`. Der Merge schließt dann das Ticket.
    - Mehrere Pull Requests zu einem Ticket: Die früheren tragen `Refs <anforderungs-repo>#<n>`, nur der letzte `Closes`. Ist offen, ob es der letzte ist, fragst du.
    - `Closes` wirkt nur, wenn der Pull Request in den Standard-Branch dieses Repos geht. Geht er in einen anderen Branch, schreibst du `Refs` und sagst der Person, dass ein Mensch das Ticket nach dem Merge schließt.
-6. **Review**: Mit dem Pull Request, der `Closes` trägt, setzt du den Zustand „Review“. Nach einem Pull Request mit `Refs` bleibt „In Arbeit“.
+6. **Review**: Mit dem Pull Request, der `Closes` trägt, setzt du den Zustand „Review“. Nach einem Pull Request mit `Refs` bleibt „In Arbeit“. An einem Unter-Ticket setzt du keinen.
 
 Danach arbeiten Menschen weiter: Eine andere Person prüft den Pull Request, ein Mensch merged, der Merge schließt das Ticket, und ein Mensch setzt Erledigt. Das Ticket schließt du nicht selbst.
 
