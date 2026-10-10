@@ -43,7 +43,7 @@ Die Auswertung schreibt in jedes Issue mit einem nächsten Schritt einen Block a
 | `weiche:vorschlag` | Weiche vorgeschlagen, wartet auf Bestätigung | Weiche-Vorschlag | Weiche-Bestätigung |
 | `agent:runde` | An diesem Issue laufen Grilling-Runden; bewusst anders als die Art `wayfinder:grilling` | Weiche-Bestätigung (nur Ablauf `v1`), Auswertung, Mensch | Grilling-Runde beim Ergebnis, lokale Session beim Umschalten auf live und beim Umstieg |
 | `agent:laeuft` | Der Agent hat eine Klärung übernommen (Claim) | Auswertung beim Start | Research-Lauf beim Abschluss; ein Mensch für einen Neustart |
-| `freigabe:wartet` | Karte oder Spec-Weg wartet auf Freigabe | treibende Person nach dem Spec | Freigabe-Vermerk |
+| `freigabe:wartet` | Karte, Spec-Weg oder Ticket wartet auf Freigabe | treibende Person nach dem Spec, am Ticket die Auswertung (nur Ablauf `v2`) | Freigabe-Vermerk |
 | `stoerungsverdacht` | Weiche vermutet eine Störung | Weiche-Vorschlag | – |
 | `anforderungs-sicht` | das angepinnte Sicht-Issue | Einrichtung | – |
 
@@ -158,7 +158,7 @@ Gilt für jede lokale Session, die einen Menschen grillt: `/wayfinder` an einer 
 
 - **Fragen mit festen Möglichkeiten** stellst du als Auswahl zum Anklicken mit dem Tool `AskUserQuestion`, die Empfehlung zuerst. Offene Fragen bleiben Text. Das gilt in Claude Code und in T3 Code gleich. T3 Code ist ein optionaler Client, nichts im Ablauf hängt von ihm ab.
 - **Ansetzen**: Lies zu Beginn den Thread des Issues. Steht dort ein Kommentar `## Zwischenstand` (der jüngste zählt) oder eine Grilling-Runde mit Antworten, setzt du dort an: Entscheidungen gelten, offene Fragen sind deine ersten Fragen, Code-Fakten schlägst du nicht neu nach. Trägt das Issue `agent:runde`, schalte zuerst auf live um (siehe „Grilling-Runden“ oben).
-- **Ticket mit Grilling** (`/grilling #<n>`): Gefragt ist die Person aus der Zeile `Gefragte Person: …` der Weiche. Das Ergebnis ist der Abschnitt `## Definition of Ready` im Issue-Text, in der Form nach dem Typ wie unter „Tickets aus einem Spec“, mit Ablauf `v2` in der erweiterten Form samt Weg (siehe „Erweiterte Definition of Ready“), dazu ein Kommentar mit den Entscheidungen und Code-Fakten. Den Text holst und schreibst du wie beim Kartieren, der Block der Auswertung bleibt stehen. Bereit setzt danach ein Mensch.
+- **Ticket mit Grilling** (`/grilling #<n>`): Gefragt ist die Person aus der Zeile `Gefragte Person: …` der Weiche. Das Ergebnis ist der Abschnitt `## Definition of Ready` im Issue-Text, in der Form nach dem Typ wie unter „Tickets aus einem Spec“, mit Ablauf `v2` in der erweiterten Form samt Weg (siehe „Erweiterte Definition of Ready“), dazu ein Kommentar mit den Entscheidungen und Code-Fakten. Den Text holst und schreibst du wie beim Kartieren, der Block der Auswertung bleibt stehen. Bereit setzt danach ein Mensch. Fehlt die Deckung, fragt vorher die Auswertung die Freigabe an, siehe „Freigabe am Ticket“.
 - **Spec-Weg mit Grilling** (`/grilling #<n>` an einem Issue mit `weg:spec`): Gefragt ist die Person aus der Zeile `Gefragte Person: …` der Bestätigung der Weiche. Das Ergebnis ist ein Kommentar, der mit `## Antwort` beginnt, wie an einer Klärung: das Ergebnis in ein bis drei Sätzen, die Entscheidungen und die Code-Fakten. Du schließt nichts und schreibst keinen Spec, das tut danach die treibende Person mit `/to-spec`.
 - **Zwischenstand**: Endet die Session ohne Ergebnis, weil die Person aufhört, abbricht oder eine Antwort erst später kennt, postest du vor dem Ende genau einen Kommentar an das Issue, an dem du gegrillt hast (die Klärung, die Karte oder Anforderung bei `/to-spec`, das Ticket). Ergebnis heißt: die Antwort einer Klärung, der Spec, die Definition of Ready. Ohne eine einzige neue Entscheidung oder Frage gibt es keinen Zwischenstand. Die erste Zeile ist genau `## Zwischenstand`, an ihr erkennt ihn die Auswertung:
 
@@ -248,6 +248,14 @@ Den Karten-Text holst und schreibst du wie beim Kartieren. Du ergänzt nur Zeile
 
 Nach dem Spec fragst du die Person: Deckt ein laufendes Projekt die Anforderung? Ein Projekt an der Karte reicht dafür nicht, sein Auftrag muss die Anforderung umfassen.
 
+Mit Ablauf `v2` steht die **Deckung** schon in der Bestätigung der Weiche, in der Zeile `Deckung: …` des Kommentars `**Weiche bestätigt: …**`. Du nennst sie und schlägst die Antwort daraus vor, die Person bestätigt oder korrigiert. Fehlt die Zeile, fragst du wie oben.
+
+- `<Projekt> deckt`: Ja, mit diesem Projekt.
+- `Eigenvorhaben`: Du ergänzt `- Keine Freigabe nötig: Eigenvorhaben.` Ebenso, wenn das Projekt der Karte im Projektregister die Art Eigenvorhaben hat (`zustaendig.sh projektart <Projekt>`).
+- `keins, Freigabe nötig`: Nein.
+
+Fehler und Störungen brauchen nie eine Freigabe. Ist die Anforderung ein Fehler, ergänzt du `- Keine Freigabe nötig: Fehler.`
+
 - **Ja**: Du ergänzt unter `## Notes` die Zeile `- Keine Freigabe nötig: <Projekt> deckt die Anforderung.` Weiter mit `/to-tickets`.
 - **Nein**: Die Karte wartet auf Freigabe. Der Spec ist die Grundlage des Angebots.
   1. Poste an der Karte die Anfrage an die erste Kundenbetreuung der Karte. Produkt und Projekt der Karte zeigt `board.sh zeige <karte>`. Die Person ist `reihenfolge[0]` aus `zustaendig.sh wer Kundenbetreuung Produkt=<Produkt> Projekt=<Projekt>`. Hat die Karte kein Projekt, lässt du `Projekt=` weg. Nur diese Person bekommt ein @. Ist `reihenfolge` leer, erwähnst du alle aus `zustaendig.sh rolle Kundenbetreuung`. Reagiert die Person 5 Werktage nicht, holt die Auswertung die nächste Kundenbetreuung der Karte dazu. Nach der ersten Reaktion, auch einem Zwischenstand wie „Angebot ist raus“, wartet die Karte ohne Frist:
@@ -266,6 +274,14 @@ Solange die Karte `freigabe:wartet` trägt, startet jeder Kommentar eines Mensch
 - **Sonst**: eine knappe Antwort. Das Label bleibt.
 
 Das Label entfernt nur der Freigabe-Vermerk, nie eine lokale Session. Hat die Person die Freigabe nur mündlich erfahren, schreibt sie sie mit Bezug als Kommentar an die Karte. Deckt doch ein laufendes Projekt die Anforderung, schreibt sie das mit dem Projekt als Kommentar. Der Freigabe-Vermerk behandelt es wie eine Freigabe.
+
+### Freigabe am Ticket
+
+Nur mit Ablauf `v2`. Ein Ticket fragt nicht nach einem Spec, sondern nach seiner Definition of Ready. Sagt die Bestätigung der Weiche `Deckung: keins, Freigabe nötig`, fragt die Auswertung die Freigabe selbst an, sobald die Definition of Ready der Form nach steht (nach Typ, wie am Ende des Grillings; fehlende Teile der erweiterten Form nennt danach der Kasten im Backlog): Sie postet `**Freigabe angefragt**` an die erste Kundenbetreuung des Tickets, setzt `freigabe:wartet` und den Zustand Wartet auf Freigabe. Fehler, Störungen und Eigenvorhaben fragt sie nicht an.
+
+- Eine lokale Session postet keine Anfrage an einem Ticket und setzt `freigabe:wartet` dort nicht. Sie setzt ein Ticket mit `freigabe:wartet` nicht auf Bereit und lässt den Zustand Wartet auf Freigabe stehen.
+- Der Freigabe-Vermerk arbeitet am Ticket wie an der Karte: Bei einer Freigabe entfernt er das Label und setzt Zustand Backlog, eine Zeile unter `## Notes` schreibt er dort nicht. Bei einer Absage setzt er Verworfen und schließt das Ticket als nicht geplant. Ein Ticket hat keine treibende Person, er erwähnt dort niemanden.
+- Die Auswertung fragt je Ticket nur einmal. Ist `freigabe:wartet` einmal entfernt, gilt die Freigabe als geklärt.
 
 ### Tickets aus einem Spec
 
