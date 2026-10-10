@@ -16,6 +16,7 @@ Dieses Repo enthält Code eines Produkts. Die Tickets dazu liegen nicht hier, so
   - Fehler: Schritte zum Reproduzieren und erwartetes Verhalten.
   - Feature: Ziel in einem Satz und Akzeptanzkriterien.
   - Aufgabe: Ergebnis in einem Satz.
+  - Mit Ablauf `v2` dazu die erweiterte Form: **Testfälle**, **Seams und Schnittstellen**, **Nicht-Ziele**, **Prüfung von Ende zu Ende**, **Betroffene Repos**, **Vorbild im Code** und **Weg** (`Agent` oder `lokal`). Die Testfälle schreibst du als Tests, die Seams sind ihr Ort, die Nicht-Ziele baust du nicht, und das Vorbild zeigt, wie es hier gemacht wird.
 - **Zustände** im Board, Feld Status: Eingang, Backlog, Bereit, In Arbeit, Review, Erledigt, Verworfen.
 
 ## Board
@@ -41,7 +42,7 @@ Gilt für jede Session, die an einem Ticket arbeitet, etwa `/implement <URL des 
 1. **Prüfen**: Lies das Ticket samt Zustand.
    - Ohne Issue Type ist es kein Ticket. Sag das und ende.
    - Ist es geschlossen, Erledigt oder Verworfen, sag das und ende.
-   - Steht es nicht auf Bereit, In Arbeit oder Review, oder fehlt die Definition of Ready, sag das. An einem Unter-Ticket (siehe „Board“) gilt der Zustand seines Haupteintrags. Bereit setzt nur ein Mensch. Du machst nur weiter, wenn die Person es ausdrücklich will.
+   - Steht es nicht auf Bereit, In Arbeit oder Review, oder fehlt die Definition of Ready oder ein Teil der erweiterten Form, sag das. An einem Unter-Ticket (siehe „Board“) gilt der Zustand seines Haupteintrags. Bereit setzt nur ein Mensch. Du machst nur weiter, wenn die Person es ausdrücklich will.
    - Ist eine andere Person Assignee, nenne sie und frag, bevor du weitermachst.
 2. **Übernehmen**, als erste Schreibaktion:
    - Ohne Assignee: `gh issue edit <n> -R <anforderungs-repo> --add-assignee @me`.
