@@ -10,6 +10,7 @@ Ein Issue ist genau eines von:
 
 - **Ticket**: hat einen Issue Type (Fehler, Feature oder Aufgabe).
 - **Karte**: hat das Label `wayfinder:map`.
+- **Spec-Weg**: hat das Label `weg:spec` und keinen Typ. Eine Anforderung ohne Karte, deren Spec die treibende Person an ihr selbst schreibt (siehe „Spec-Weg“). Nur mit Ablauf `v2`.
 - **Klärung**: hat ein Label `wayfinder:<art>` und ist Sub-Issue einer Karte. Die Arten sind `research`, `prototype`, `grilling` und `task`. `task` ist die Vorarbeit.
 - **Anforderung im Eingang**: alles andere.
 
@@ -37,11 +38,12 @@ Die Auswertung schreibt in jedes Issue mit einem nächsten Schritt einen Block a
 | Label | Bedeutung | Setzt | Entfernt |
 |---|---|---|---|
 | `wayfinder:map` | Karte | Weiche-Bestätigung | `/to-tickets` bei der Übergabe (nur Ablauf `v2`) |
+| `weg:spec` | Spec-Weg: Anforderung ohne Karte, deren Spec an ihr selbst entsteht; kein `wayfinder:`-Präfix, weil das eine Klärung kennzeichnet | Weiche-Bestätigung (nur Ablauf `v2`) | `/to-tickets` bei der Übergabe |
 | `wayfinder:research`, `wayfinder:prototype`, `wayfinder:grilling`, `wayfinder:task` | Klärung mit ihrer Art; `task` ist die Vorarbeit | `/wayfinder` | – |
 | `weiche:vorschlag` | Weiche vorgeschlagen, wartet auf Bestätigung | Weiche-Vorschlag | Weiche-Bestätigung |
 | `agent:runde` | An diesem Issue laufen Grilling-Runden; bewusst anders als die Art `wayfinder:grilling` | Weiche-Bestätigung (nur Ablauf `v1`), Auswertung, Mensch | Grilling-Runde beim Ergebnis, lokale Session beim Umschalten auf live |
 | `agent:laeuft` | Der Agent hat eine Klärung übernommen (Claim) | Auswertung beim Start | Research-Lauf beim Abschluss; ein Mensch für einen Neustart |
-| `freigabe:wartet` | Karte wartet auf Freigabe | treibende Person nach dem Spec | Freigabe-Vermerk |
+| `freigabe:wartet` | Karte oder Spec-Weg wartet auf Freigabe | treibende Person nach dem Spec | Freigabe-Vermerk |
 | `stoerungsverdacht` | Weiche vermutet eine Störung | Weiche-Vorschlag | – |
 | `anforderungs-sicht` | das angepinnte Sicht-Issue | Einrichtung | – |
 
@@ -59,11 +61,11 @@ Triage-Labels wie `needs-triage` oder `ready-for-agent` gibt es hier nicht. Die 
 ## Personen
 
 - **Eingetragene Person einer Klärung**: der Assignee. Eine Klärung hat höchstens eine. Eine Research-Klärung ohne Assignee gehört dem Agent. Ein Bot kann nicht Assignee sein.
-- **Treibende Hauptentwickler:in**: der Assignee der Karte. Mit Ablauf `v2` bleibt sie nach der Übergabe als Assignee am Haupteintrag, bis er Erledigt ist.
+- **Treibende Hauptentwickler:in**: der Assignee der Karte oder des Spec-Wegs. Mit Ablauf `v2` bleibt sie nach der Übergabe als Assignee am Haupteintrag, bis er Erledigt ist.
 - **Einbringende Person**: die Autor:in des Issues. Bei Mail-Eingang ist es die Person aus der ersten Zeile „Eingebracht von @<login> per Mail am <Datum>“. Ein Block der Auswertung davor zählt nicht.
 - **Gefragte Person einer Grilling-Runde**: die eine Erwähnung in der ersten Zeile jedes Runden-Kommentars.
   - An einer Klärung ist das die eingetragene Person, ohne Assignee mit Zugriff die treibende Person. Fehlt auch sie, trägt die Auswertung beim Start die erste Hauptentwickler:in der Zuständigkeit der Karte ein.
-  - An einem Ticket ist es die Person aus der Zeile „Gefragte Person: …“ der Weiche: die einbringende Person, wenn sie zum Team gehört, sonst die erste Kundenbetreuung von Produkt oder Projekt. Nennt die Bestätigung der Weiche jemand anderen, gilt diese Person.
+  - An einem Ticket ist es die Person aus der Zeile „Gefragte Person: …“ der Weiche: die einbringende Person, wenn sie zum Team gehört, sonst die erste Kundenbetreuung von Produkt oder Projekt. Nennt die Bestätigung der Weiche jemand anderen, gilt diese Person. Mit Ablauf `v2` zählt nur die Zeile der Bestätigung: Fehlt sie dort, ist es ein Ticket ohne Grilling. Ebenso an einem Spec-Weg mit Grilling.
   - **Live oder asynchron**: Gibt `zustaendig.sh ablauf` `v2` aus, wird die gefragte Person so gegrillt, wie `zustaendig.sh grilling <login>` sagt: `live` in einer lokalen Session (siehe „Grilling-Session lokal“), `asynchron` als Grilling-Runde in GitHub Actions. Dann setzt die Auswertung `agent:runde` an einer frei gewordenen Grilling-Klärung und an einem Ticket mit Grilling nur bei `asynchron`, die Weiche-Bestätigung setzt es nicht mehr. Bei `live` nennt der Kasten der Person die lokale Session mit Befehl. Bei `v1` gilt alles hier wie bisher.
   - Antwortet die gefragte Person 5 Werktage nicht, holt die Auswertung die nächste Person der Reihenfolge dazu (**Vertretung**), per Kommentar mit Erwähnung. Die Frist beginnt je Vertretung neu. Die erste Antwort der gefragten Person oder einer erwähnten Vertretung zählt, und wer zuerst antwortet, ist ab dann gefragt. Am Ende der Reihenfolge erwähnt die Auswertung einmal alle Hauptentwickler:innen.
 - Rollen und Zuständigkeiten stehen in der Einstellungs-Datei `einstellungen.json`. Du liest sie nur über `zustaendig.sh` (siehe „Skripte“), nie die Datei selbst. Aufbau und Pflege stehen in der README unter „Einstellungs-Datei“, die Hilfe im Kopf des Skripts.
@@ -99,13 +101,13 @@ Triage-Labels wie `needs-triage` oder `ready-for-agent` gibt es hier nicht. Die 
 
 ## When a skill says "publish to the issue tracker"
 
-- `/to-spec`: Der Spec ist ein Kommentar an der Karte. Du legst kein neues Issue an. Siehe „Spec und Tickets aus einer Karte“.
+- `/to-spec`: Der Spec ist ein Kommentar an der Karte, am Spec-Weg an der Anforderung selbst. Du legst kein neues Issue an. Siehe „Spec-Weg“ und „Spec und Tickets aus einer Karte“.
 - `/to-tickets`: Tickets aus einem Spec, ebenda.
 - Ein Triage-Label wie `ready-for-agent` setzt du nicht, auch wenn der Skill es verlangt.
 
 ## When a skill says "fetch the relevant ticket"
 
-Run `gh issue view <number> --comments`. Ist es eine Karte und läuft `/to-spec` oder `/to-tickets`, gilt zuerst „Spec und Tickets aus einer Karte“.
+Run `gh issue view <number> --comments`. Ist es eine Karte oder ein Spec-Weg und läuft `/to-spec` oder `/to-tickets`, gilt zuerst „Spec und Tickets aus einer Karte“, am Spec-Weg dazu „Spec-Weg“.
 
 ## Wayfinding operations
 
@@ -151,11 +153,12 @@ Used by `/wayfinder`. In seiner Sprache ist die map die Karte, ein ticket eine K
 
 ## Grilling-Session lokal
 
-Gilt für jede lokale Session, die einen Menschen grillt: `/wayfinder` an einer Grilling-Klärung, `/to-spec` und `/grilling` an einem Ticket mit Grilling.
+Gilt für jede lokale Session, die einen Menschen grillt: `/wayfinder` an einer Grilling-Klärung, `/to-spec` und `/grilling` an einem Ticket oder Spec-Weg mit Grilling.
 
 - **Fragen mit festen Möglichkeiten** stellst du als Auswahl zum Anklicken mit dem Tool `AskUserQuestion`, die Empfehlung zuerst. Offene Fragen bleiben Text. Das gilt in Claude Code und in T3 Code gleich. T3 Code ist ein optionaler Client, nichts im Ablauf hängt von ihm ab.
 - **Ansetzen**: Lies zu Beginn den Thread des Issues. Steht dort ein Kommentar `## Zwischenstand` (der jüngste zählt) oder eine Grilling-Runde mit Antworten, setzt du dort an: Entscheidungen gelten, offene Fragen sind deine ersten Fragen, Code-Fakten schlägst du nicht neu nach. Trägt das Issue `agent:runde`, schalte zuerst auf live um (siehe „Grilling-Runden“ oben).
 - **Ticket mit Grilling** (`/grilling #<n>`): Gefragt ist die Person aus der Zeile `Gefragte Person: …` der Weiche. Das Ergebnis ist der Abschnitt `## Definition of Ready` im Issue-Text, in der Form nach dem Typ wie unter „Tickets aus einem Spec“, dazu ein Kommentar mit den Entscheidungen und Code-Fakten. Den Text holst und schreibst du wie beim Kartieren, der Block der Auswertung bleibt stehen. Bereit setzt danach ein Mensch.
+- **Spec-Weg mit Grilling** (`/grilling #<n>` an einem Issue mit `weg:spec`): Gefragt ist die Person aus der Zeile `Gefragte Person: …` der Bestätigung der Weiche. Das Ergebnis ist ein Kommentar, der mit `## Antwort` beginnt, wie an einer Klärung: das Ergebnis in ein bis drei Sätzen, die Entscheidungen und die Code-Fakten. Du schließt nichts und schreibst keinen Spec, das tut danach die treibende Person mit `/to-spec`.
 - **Zwischenstand**: Endet die Session ohne Ergebnis, weil die Person aufhört, abbricht oder eine Antwort erst später kennt, postest du vor dem Ende genau einen Kommentar an das Issue, an dem du gegrillt hast (die Klärung, die Karte oder Anforderung bei `/to-spec`, das Ticket). Ergebnis heißt: die Antwort einer Klärung, der Spec, die Definition of Ready. Ohne eine einzige neue Entscheidung oder Frage gibt es keinen Zwischenstand. Die erste Zeile ist genau `## Zwischenstand`, an ihr erkennt ihn die Auswertung:
 
   ```
@@ -178,6 +181,16 @@ Gilt für jede lokale Session, die einen Menschen grillt: `/wayfinder` an einer 
 
   Code-Fakten nennen Pfad und Zeilen und den Befund in eigenen Worten, höchstens ein paar Zeilen Code, nie Geheimnisse, Zugangsdaten oder Kundendaten. Leere Abschnitte lässt du weg.
 - **Frist**: Der Zwischenstand zählt als Bewegung. Liegt eine Grilling-Session 5 Werktage ohne Ergebnis und ohne Zwischenstand, holt die Auswertung die nächste Person der Reihenfolge dazu, wie an einer Grilling-Runde.
+
+## Spec-Weg
+
+Gibt `zustaendig.sh ablauf` `v2` aus, hat die Weiche fünf Ausgänge: Ticket, Spec, Karte, Störung und Verworfen. Ticket und Spec gibt es mit oder ohne Grilling. Größe trennt Ticket und Spec, Nebel trennt Spec und Karte. Eine mittelgroße, klare Anforderung bestätigt die Weiche als **Spec**: ohne Karte, mit Label `weg:spec`, der treibenden Hauptentwickler:in als Assignee und Zustand In Klärung. In Klärung bleibt sie, bis `/to-tickets` übergibt.
+
+- **Spec schreiben**: Die treibende Person zieht lokal `/to-spec #<n>`. Sie grillt sich darin selbst, nach „Grilling-Session lokal“, und schreibt den Spec in derselben Session.
+- **Spec mit Grilling**: Nennt die Bestätigung eine andere gefragte Person, wird erst sie gegrillt, live mit `/grilling #<n>` oder asynchron in Grilling-Runden. Steht danach ein Kommentar `## Antwort`, schreibt die treibende Person den Spec daraus. Fehlt die Antwort noch, wenn `/to-spec` läuft, sagst du das, nennst die gefragte Person und fragst, ob die treibende Person trotzdem schreiben will. Ist die gefragte zugleich die treibende Person, grillt sie sich in der Session von `/to-spec`.
+- **Spec, Freigabe und Tickets** vermerkst du wie an einer Karte unter „Spec und Tickets aus einer Karte“. Statt der Karte steht dort die Anforderung selbst: Der Spec ist ein Kommentar `## Spec` an ihr, die Zeilen `- Spec:`, `- Freigabe am …`, `- Keine Freigabe nötig: …` und `- Tickets:` stehen in ihrem Text unter `## Notes`. Fehlt der Abschnitt, legst du ihn am Ende des Texts an. Der Text der Anforderung darüber bleibt Zeichen für Zeichen, auch der Block der Auswertung.
+- Der **Freigabe-Vermerk** arbeitet auch am Spec-Weg, sobald er `freigabe:wartet` trägt.
+- **Übergabe**: `/to-tickets` übergibt den Spec-Weg nach „Übergabe mit Ablauf v2“, mit der Anforderung statt der Karte und `weg:spec` statt `wayfinder:map`. Auch hier kommt erst der Typ, dann das Label weg, sonst stünde das Issue ohne beides da und die Weiche startete.
 
 ## Spec und Tickets aus einer Karte
 
@@ -222,7 +235,7 @@ Prüfe zuerst, bevor du einen Zuschnitt entwirfst:
 
 - Trägt die Karte `freigabe:wartet`, legst du keine Tickets an und entwirfst keinen Zuschnitt. Du sagst: „Karte #<n> wartet auf Freigabe. Tickets entstehen erst nach dem Freigabe-Vermerk.“ Dann endest du.
 - Steht unter `## Notes` schon eine Zeile `- Tickets:`, gibt es die Tickets schon. Du legst keine an und entwirfst keinen Zuschnitt. Du nennst die Tickets aus der Zeile und machst weiter mit „Karte übergeben“, mit Ablauf `v2` mit „Übergabe mit Ablauf v2“ ab dem ersten Schritt, der fehlt. Ist die Karte schon geschlossen, sagst du das und endest.
-- Mit Ablauf `v2`: Hat das Issue schon einen Typ und kein `wayfinder:map`, ist es schon Haupteintrag. Du sagst das, nennst seine Unter-Tickets (`gh api repos/{owner}/{repo}/issues/<n>/sub_issues --jq '.[] | "#\(.number) \(.title)"'`) und endest.
+- Mit Ablauf `v2`: Hat das Issue schon einen Typ und weder `wayfinder:map` noch `weg:spec`, ist es schon Haupteintrag. Du sagst das, nennst seine Unter-Tickets (`gh api repos/{owner}/{repo}/issues/<n>/sub_issues --jq '.[] | "#\(.number) \(.title)"'`) und endest.
 - Steht unter `## Notes` weder eine Freigabe noch „Keine Freigabe nötig“, klärst du das zuerst wie unter „Freigabe“.
 - Grundlage ist der Spec, den `## Notes` verlinkt.
 
@@ -289,7 +302,7 @@ Die Anforderung ist dann in der Phase Übergeben.
 Die Karte schließt nicht. Sie wird selbst zum Übergeordneten Ticket, dem Haupteintrag der Anforderung bis Erledigt, mit den Unter-Tickets als Sub-Issues. Du fragst nicht, ob du übergeben sollst: Der bestätigte Zuschnitt ist die Übergabe. Sind alle Unter-Tickets angelegt, die Zeile `- Tickets:` geschrieben und die Kanten gesetzt, in dieser Reihenfolge:
 
 1. Issue Type am Haupteintrag, der aus dem Zuschnitt: `gh api --method PATCH repos/{owner}/{repo}/issues/<karte> -f type=<Fehler|Feature|Aufgabe>`. Erst der Typ, dann das Label: So ist die Karte nie ohne beides eine Anforderung im Eingang.
-2. `gh issue edit <karte> --remove-label wayfinder:map`.
+2. `gh issue edit <karte> --remove-label wayfinder:map`, am Spec-Weg `--remove-label weg:spec` (siehe „Spec-Weg“).
 3. `board.sh setze <karte> Zustand=Backlog`. Produkt und Projekt bleiben, die Unter-Tickets erben sie.
 
 Kein Kommentar „Karte übergeben“, kein Erledigt, nicht schließen, der Assignee bleibt. Der Haupteintrag steht dann auf Backlog. Bereit setzt eine Hauptentwickler:in am Haupteintrag, nicht an den Unter-Tickets. Eine eigene Definition of Ready braucht er nicht, die tragen seine Unter-Tickets. Scheitert ein Schritt, nennst du ihn. Ein späterer Aufruf von `/to-tickets` macht ab dort weiter.
