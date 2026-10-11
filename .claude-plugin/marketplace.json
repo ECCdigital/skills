@@ -4,7 +4,7 @@
     "name": "Matt Pocock",
     "url": "https://www.aihero.dev"
   },
-  "description": "ECC-Fassung von Matt Pococks Skills (Fork ECCdigital/skills), als Claude-Code-Plugin. Siehe ECC.md.",
+  "description": "Fassung von Matt Pococks Skills für Portolan, als Claude-Code-Plugin. Siehe PORTOLAN.md.",
   "plugins": [
     {
       "name": "mattpocock-skills",
