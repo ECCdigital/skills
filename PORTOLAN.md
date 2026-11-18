@@ -23,7 +23,7 @@ Dazu kommt, was der Fork selbst braucht:
 - `.claude-plugin/marketplace.json`: nur `name` und `description`. Der Name ist der Name des Marketplace bei der Installation (`mattpocock-skills@ecc`) und steckt im Tag-Schema (`ecc-<n>`). Beide bleiben bewusst (#411): Ein neuer Name hieße Neuinstallation auf jedem Rechner. Der Wächter erlaubt sie als enge Ausnahme, nur in diesen Schreibweisen.
 - `PORTOLAN.md`: diese Datei.
 - `scripts/feste-namen.mjs` und `scripts/feste-namen.test.mjs`: der Wächter gegen feste Namen von ECC Digital, wie in portolan. `.github/workflows/feste-namen.yml` lässt ihn an jedem Pull Request und an jedem Push auf `main` und `v2/**` laufen, ohne Secrets.
-- `scripts/vorlage-produkt-repo.test.mjs`: prüft, dass die Vorlage „GitHub Portolan, Produkt-Repo“ dem Schalter `ablauf` folgt, Unter-Tickets nur mit `v2` (#416). `feste-namen.yml` führt alle Tests unter `scripts/` aus: `node --test scripts/*.test.mjs`.
+- `scripts/vorlage-produkt-repo.test.mjs`: prüft, dass die Vorlagen „GitHub Portolan“ und „GitHub Portolan, Produkt-Repo“ nur den Ablauf v2 beschreiben, ohne Schalter `ablauf` (#416, seit #437). `feste-namen.yml` führt alle Tests unter `scripts/` aus: `node --test scripts/*.test.mjs`.
 - Matts Workflows `release.yml`, `needs-info.yml` und `triage-label.yml` sind im Fork abgeschaltet (`gh workflow disable <datei>`). Die Dateien bleiben unverändert. Issues sind im Fork aus.
 
 Alles andere ist Matts Stand. Prüfen: `git diff --stat upstream main`.
